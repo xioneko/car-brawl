@@ -12,16 +12,28 @@
 
 <details>
   <summary>搭建本地 Rholang 执行环境</summary>
-  <ol>
-    <li>在 Windows 上安装 <a href="https://docs.docker.com/desktop/install/windows-install/">Docker</a> 并打开</li>
-    <li>拉取 rnode 镜像 <code>docker pull rchain/rnode:v0.12.8</code></li>
-    <li>创建 docker network <code>docker network create rnode-net</code></li>
-    <li>运行 rnode 节点 <code>docker run -u root -it --rm --network rnode-net --name rnode -v "%cd%/":/data rchain/rnode:v0.12.8 run -s</code>，在当前终端中会显示 rnode 日志</li>
-    <li>新建一个终端，创建命令别名 <code>doskey rnode=docker exec rnode /opt/docker/bin/rnode $*</code></li>
-    <li>执行 .rho 文件 <code>rnode eval "file_path"</code> (路径格式：假如当前目录有个 hello.rho 文件，那么应该执行 <code>rnode eval /data/hello.rho</code>)</li>
-    <li>在显示 rnode 日志的终端中可以看到执行结果</li>
-  </ol>
-  注意：<code>dcoker run</code> 命令创建的容器是一次性的，在运行命令的终端中按下 <code>Ctrl+C</code> 可以停止并删除容器。需要再次运行 rnode 时，先打开 Docker Desktop 应用，然后从第 4 步骤开始即可
+  <div>
+    <h4>方法一：</h4>
+      <ol>
+        <li>在 Windows 上安装 <a href="https://docs.docker.com/desktop/install/windows-install/">Docker</a> 并打开</li>
+        <li>打开 VS Code 安装 Rholang 扩展</li>
+        <li>在扩展设置中打开 Enable Docker，在 Rnode Docker Image 中输入 <code>rchain/rnode:v0.12.8</code></li>
+        <li>打开 .rho 文件，Ctrl+S 保存，便可以在输出面板 [Rholang] 中看到执行结果
+      </ol>
+  </div>
+  <div>
+    <h4>方法二：</h4>
+      <ol>
+        <li>在 Windows 上安装 <a href="https://docs.docker.com/desktop/install/windows-install/">Docker</a> 并打开</li>
+        <li>拉取 rnode 镜像 <code>docker pull rchain/rnode:v0.12.8</code></li>
+        <li>创建 docker network <code>docker network create rnode-net</code></li>
+        <li>运行 rnode 节点 <code>docker run -u root -it --rm --network rnode-net --name rnode -v "%cd%/":/data rchain/rnode:v0.12.8 run -s</code>，在当前终端中会显示 rnode 日志</li>
+        <li>新建一个终端，创建命令别名 <code>doskey rnode=docker exec rnode /opt/docker/bin/rnode $*</code></li>
+        <li>执行 .rho 文件 <code>rnode eval "file_path"</code> (路径格式：假如当前目录有个 hello.rho 文件，那么应该执行 <code>rnode eval /data/hello.rho</code>)</li>
+        <li>在显示 rnode 日志的终端中可以看到执行结果</li>
+      </ol>
+    注意：<code>dcoker run</code> 命令创建的容器是一次性的，在运行命令的终端中按下 <code>Ctrl+C</code> 可以停止并删除容器。需要再次运行 rnode 时，先打开 Docker Desktop 应用，然后从第 4 步骤开始即可
+  </div>
 </details>
 
 ## Development
