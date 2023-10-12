@@ -1,0 +1,40 @@
+x-rnode: &default-rnode
+  image: rchain/rnode:v0.12.8
+  user: root
+  restart: always
+  networks:
+    - rchain-net
+
+networks:
+  rchain-net:
+
+
+services:
+  boot:
+    <<: *default-rnode
+    container_name: boot
+    command: run --config-file /config/rnode.conf
+    volumes:
+      - ./data:/data # rnode storage
+      - ./rnode.boot.conf:/config/rnode.conf
+    ports:
+      - $RNODE_HOST:40401:40401
+      - $RNODE_HOST:40402:40402
+      - $RNODE_HOST:40403:40403 # http-api
+      - $RNODE_HOST:40405:40405 # http-admin-api
+      # peer connection
+      - $RNODE_HOST:40400:40400
+      - $RNODE_HOST:40404:40404
+
+  read:
+    <<: *default-rnode
+    container_name: read
+    command: run --config-file /config/rnode.conf
+    volumes:
+      - ./rnode.read.conf:/config/rnode.conf
+    ports:
+      - $RNODE_HOST:40411:40401
+      - $RNODE_HOST:40413:40403 # http-api
+      # peer connection
+      - $RNODE_HOST:40410:40410
+      - $RNODE_HOST:40414:40414

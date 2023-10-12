@@ -1,0 +1,21 @@
+{
+    "cSpell.words": [
+        "blakejs",
+        "Hocon",
+        "keccak",
+        "nuxtjs",
+        "phlo",
+        "rchain",
+        "rholang",
+        "rnode",
+        "secp256k1",
+        "Unforg"
+    ],
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "cSpell.enableFiletypes": [
+        "javascript",
+        "properties",
+        "typescript",
+        "vue"
+    ]
+}

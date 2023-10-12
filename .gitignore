@@ -1,10 +1,24 @@
-.vscode/
-*.code-workspace
-node_modules/
-dist/
-*.deb
+# rnode
+data/*
+!data/*.pem
+!data/genesis
 
-data/rnode/readonly/*
-data/rnode/validator/*
-!data/rnode/validator/*.pem
-!data/rnode/validator/genesis
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
