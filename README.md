@@ -32,10 +32,31 @@
         <li>执行 .rho 文件 <code>rnode eval "file_path"</code> (路径格式：假如当前目录有个 hello.rho 文件，那么应该执行 <code>rnode eval /data/hello.rho</code>)</li>
         <li>在显示 rnode 日志的终端中可以看到执行结果</li>
       </ol>
-    注意：<code>dcoker run</code> 命令创建的容器是一次性的，在运行命令的终端中按下 <code>Ctrl+C</code> 可以停止并删除容器。需要再次运行 rnode 时，先打开 Docker Desktop 应用，然后从第 4 步骤开始即可
+    注意：<code>docker run</code> 命令创建的容器是一次性的，在运行命令的终端中按下 <code>Ctrl+C</code> 可以停止并删除容器。需要再次运行 rnode 时，先打开 Docker Desktop 应用，然后从第 4 步骤开始即可
   </div>
 </details>
 
+<details>
+  <summary>了解 Deploy 和 Propose</summary>
+  <ul>
+    <li>可以将 Rholang 写的代码程序部署 (Deploy) 到 RChain 上运行</li>
+    <li>要想执行 Deploy，部署者需要提供自己的身份信息，且必须为所消耗的计算资源支付一定的费用</li>
+    <li>任何拥有有效身份信息的人都可以成为部署者，这个身份信息一般指一个唯一公钥或地址</li>
+    <li>在执行 Deploy 后，代码程序还没有被真正放到 RChain 区块链的区块上</li>
+    <li>还需要一个验证者 (Validator) 节点 (RNode) 验证其有效性，然后由这个节点执行区块提议 (Propose)</li>
+    <li>节点网络上的其他验证者接收到这个提议，并达成共识之后，新区块才会被创建，而代码程序就部署在上面</li>
+  <ul>
+</details>
+
+## Overall Design
+### Back-end
+- 使用 Docker 部署 RChain 网络，包含一个 Validator 节点和一个 Observer (只读)节点。Validator 节点提供了 Deploy、Propose 等 HTTP API，Observer 节点提供了可用来查询 REV 余额的 HTTP API
+- 采用 Nuxt 框架默认提供的 [Server Engine](https://nuxt.com/docs/guide/concepts/server-engine)，代理来自客户端的 Deploy 请求
+- 
+
+### Front-end
+- 通过 [MetaMask](https://metamask.io/) 浏览器扩展获取用户的身份信息，用于发起 Deploy 请求。具体而言，会通过扩展提供的 API 获取用户的 ETH 地址 (会被转换为 REV 地址) 或对部署的内容进行签名
+- 
 ## Development
 
 ### Run rnode
@@ -59,16 +80,6 @@ docker compose logs -f
 # 停止运行
 docker compose down
 ```
-
-<details>
-  <summary>More Details</summary>
-    Docker 中运行了一对 peer rnode (boot 和 read)，其配置文件在项目根目录下，以 .conf 结尾
-    <ul>
-      <li>boot node 具有 validator 身份，可执行 Deploy 和 Propose，它以 standalone 模式运行，会携带上 genesis 的一些信息</li>
-      <li>read node 负责执行 explore-deploy (查询 Balance 时需要用到)，其 bootstrap 参数被配置为 boot node 的地址</li>
-    </ul>
-    对本项目而言，用户本身不直接与 rnode 进行通信，而是由服务器进行代理。.env 文件中配置了 rnode 的访问 IP，如果 rnode 只与服务器进行通信，将 RNODE_HOST 配置为 127.0.0.1 即可。
-</details>
 
 ### Node.js v18.x
 
