@@ -9,7 +9,8 @@
         "rholang",
         "rnode",
         "secp256k1",
-        "Unforg"
+        "Unforg",
+        "colyseus"
     ],
     "typescript.tsdk": "node_modules/typescript/lib",
     "cSpell.enableFiletypes": [
