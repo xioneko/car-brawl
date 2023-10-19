@@ -1,14 +1,14 @@
 import { Server as HttpServer } from 'node:http'
 import colyseus from 'colyseus'
 import { WebSocketTransport } from '@colyseus/ws-transport'
-import { TimedRoom } from './rooms/timed'
+import { CompetitiveRoom } from './rooms/competitive'
 import { RoomType } from '~/models/room'
 
 if (process.dev) {
-    // @ts-ignore
+    // @ts-expect-error
     import('#internal/nitro/entries/nitro-dev')
 } else {
-    // @ts-ignore
+    // @ts-expect-error
     import('#internal/nitro/entries/node-server')
 }
 
@@ -19,5 +19,5 @@ const gameServer = new colyseus.Server({
         server: new HttpServer(listener),
     }),
 })
-gameServer.define(RoomType.TimedRoom, TimedRoom)
+gameServer.define(RoomType.CompetitiveRoom, CompetitiveRoom)
 gameServer.listen(4567)

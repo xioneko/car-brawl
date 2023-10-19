@@ -2,6 +2,7 @@ import base58 from 'bs58'
 import sha3 from 'js-sha3'
 import blake from 'blakejs'
 import { logger } from '../rchain/logger'
+import { RevAccount } from '~/models/account'
 
 export default defineEventHandler(async (event) => {
     logger.debug('debug message')

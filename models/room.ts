@@ -1,7 +1,9 @@
-import { RevAccount } from './user'
+import { RevAccount } from './account'
 
 export enum RoomType {
-    TimedRoom = 'Timed_Room',
+    CompetitiveRoom = 'Competitive Room',
+    FunRoom = 'Fun Room',
+    SingleRoom = 'Single Room',
 }
 
 export type RoomOptions = {

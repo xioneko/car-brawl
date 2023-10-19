@@ -1,27 +1,44 @@
-import fs from 'fs'
-import path from 'path'
-import axios from 'axios'
-import parseHocon from 'hocon-parser'
+import { rnodeAdmin, rnodeHttp } from './axios'
+import { rhExprToJson } from './rho'
+import { DeployInfo, DeployRequest } from '~/models/protocol'
 
-const validatorConf = parseHocon(
-    fs.readFileSync(path.join(process.cwd(), 'rnode.boot.conf')).toString(),
-)
-const readonlyConf = parseHocon(
-    fs.readFileSync(path.join(process.cwd(), 'rnode.read.conf')).toString(),
-)
+export function sendDeploy(deployRequest: DeployRequest) {
+    return rnodeHttp.post('/api/deploy', deployRequest)
+}
 
-const httpHost = validatorConf['protocol-server'].host
-const httpPort = validatorConf['api-server']['port-http']
-const httpAdminPort = validatorConf['api-server']['port-admin-http']
-const httpReadonlyHost = readonlyConf['protocol-server'].host
-const httpReadonlyPort = readonlyConf['api-server']['port-http']
+export async function propose() {
+    await rnodeAdmin.post('/api/propose')
+}
 
-export const http = axios.create({
-    baseURL: `http://${httpHost}:${httpPort}`,
-})
-export const httpAdmin = axios.create({
-    baseURL: `http://${httpHost}:${httpAdminPort}`,
-})
-export const httpReadonly = axios.create({
-    baseURL: `http://${httpReadonlyHost}:${httpReadonlyPort}`,
-})
+export async function fetchDeploy(
+    deployId: string,
+): Promise<DeployInfo | undefined> {
+    const { blockHash } = await rnodeHttp
+        .get(`/api/deploy/${deployId}`)
+        .then((res) => res.data)
+        .catch((err) => {
+            if (!err.response || err.response.status !== 400) {
+                throw err
+            }
+        })
+
+    if (blockHash) {
+        const { deploys }: { deploys: DeployInfo[] } = (
+            await rnodeHttp.get(`/api/block/${blockHash}`)
+        ).data
+        return deploys.find((d) => d.sig === deployId)
+    }
+}
+
+export async function dataAtName(deployId: string): Promise<any[]> {
+    const {
+        exprs: [{ expr }],
+    } = (
+        await rnodeHttp.post(`/api/data-at-name`, {
+            depth: 1,
+            name: { UnforgDeploy: { data: deployId } },
+        })
+    ).data
+
+    return rhExprToJson(expr)
+}

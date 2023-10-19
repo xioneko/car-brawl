@@ -1,40 +1,12 @@
 import blake from 'blakejs'
-import * as ethUtil from '@ethereumjs/util'
 import { BinaryWriter } from 'google-protobuf'
 import elliptic from 'elliptic'
-import type { DeployData, Deploy } from '../types'
+import type { DeployData, DeployRequest } from '~/models/protocol'
 
-export async function signMetamask(
+export function signDeploy(
     deployData: DeployData,
-    ethAddr: string,
-): Promise<Deploy> {
-    const recoverPublicKeyEth = (data: Uint8Array, sigHex: string) => {
-        const hashed = ethUtil.hashPersonalMessage(data)
-        const { v, r, s } = ethUtil.fromRpcSig(sigHex)
-        const pubKeyRecover = ethUtil.ecrecover(hashed, v, r, s)
-
-        return ethUtil.bytesToHex(Uint8Array.from([4, ...pubKeyRecover]))
-    }
-    const remove0x = (hexStr: string) => hexStr.replace(/^0x/, '')
-
-    const data = deployDataProtobufSerialize(deployData)
-
-    // @ts-ignore
-    const sigHex = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [ethUtil.bytesToHex(data), ethAddr],
-    })
-    const pubKeyHex = recoverPublicKeyEth(data, sigHex)
-
-    return {
-        data: deployData,
-        sigAlgorithm: 'secp256k1:eth',
-        signature: remove0x(sigHex),
-        deployer: remove0x(pubKeyHex),
-    }
-}
-
-export function signDeploy(deployData: DeployData, privateKey: string): Deploy {
+    privateKey: string,
+): DeployRequest {
     const sigAlgorithm = 'secp256k1'
     const deploySerialized = deployDataProtobufSerialize(deployData)
     // eslint-disable-next-line
@@ -53,7 +25,7 @@ export function signDeploy(deployData: DeployData, privateKey: string): Deploy {
     }
 }
 
-export function deployDataProtobufSerialize(deployData: DeployData) {
+function deployDataProtobufSerialize(deployData: DeployData) {
     const { term, timestamp, phloPrice, phloLimit, validAfterBlockNumber } =
         deployData
 

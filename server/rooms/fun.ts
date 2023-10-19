@@ -1,18 +1,25 @@
 import { IncomingMessage } from 'node:http'
 import colyseus from 'colyseus'
 import { useLogger } from '@nuxt/kit'
+import { format as prettyFormat } from 'pretty-format'
 import { handlePlayerCtrl, handlePlayerJoin } from './handlers'
 import { RoomState } from '~/models/schema'
 import { MessageType } from '~/models/message'
-import type { RoomOptions } from '~/models/room'
+import { RoomType, type RoomOptions } from '~/models/room'
+import { PlayerCtrl } from '~/models/player-ctrl'
 
-const logger = useLogger('Timed Room')
+const logger = useLogger(RoomType.FunRoom)
 
-export class TimedRoom extends colyseus.Room<RoomState> {
+export class FunRoom extends colyseus.Room<RoomState> {
     onCreate() {
-        this.onMessage(MessageType.playerCtrl, (client, message) => {
-            logger.handlePlayerCtrl(client, message)
-        })
+        logger.info(`New Room ${this.roomId} Created`)
+        this.onMessage(
+            MessageType.PlayerCtrl,
+            (client, message: PlayerCtrl) => {
+                logger.debug(prettyFormat(message))
+                handlePlayerCtrl(client, message)
+            },
+        )
     }
 
     onAuth(
@@ -23,6 +30,7 @@ export class TimedRoom extends colyseus.Room<RoomState> {
 
     // When client successfully join the room
     onJoin(client: colyseus.Client, options: RoomOptions, auth: any) {
+        // logger.info('New')
         handlePlayerJoin()
     }
 

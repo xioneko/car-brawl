@@ -1,0 +1,14 @@
+contract @"CarsBattleGame"(gameId) = {
+    new debug(`rho:io:stdout`), playersCh,
+
+    contract @[gameId, "join"](player) = {
+
+    }
+
+    contract @[gameId, "earn"](player, n) = {}
+
+    contract @[gameId, "end"]() = {
+
+    }
+    ,,!!
+}

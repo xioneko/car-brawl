@@ -7,6 +7,7 @@
         "vue.volar",
         "bradlc.vscode-tailwindcss",
         "mikestead.dotenv",
-        "nuxtr.nuxtr-vscode"
+        "nuxtr.nuxtr-vscode",
+        "tgrospic.rholang"
     ]
 }
