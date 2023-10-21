@@ -3,6 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "clean:rnode": "del data/* !data/*.pem !data/genesis",
         "build": "nuxt build",
         "dev": "nuxt dev",
         "generate": "nuxt generate",

@@ -3,9 +3,11 @@ import { BinaryWriter } from 'google-protobuf'
 import elliptic from 'elliptic'
 import type { DeployData, DeployRequest } from '~/models/protocol'
 
+const SystemPrivKey = process.env.BOOT_PRIVATE_KEY!
+
 export function signDeploy(
     deployData: DeployData,
-    privateKey: string,
+    privateKey: string = SystemPrivKey,
 ): DeployRequest {
     const sigAlgorithm = 'secp256k1'
     const deploySerialized = deployDataProtobufSerialize(deployData)

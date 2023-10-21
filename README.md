@@ -95,14 +95,12 @@
 # 或在 Ubuntu 上开启 docker service
 sudo service docker start
 
-# 运行 rnode
-docker compose up -d
+# 启动
+docker compose up
 
-# 显示 rnode 日志
-docker compose logs -f
-
-# 停止运行
+# 终止
 docker compose down
+
 ```
 
 ### Node.js v18.x
