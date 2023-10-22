@@ -1,2 +1,2 @@
 export * from './join'
-export * from './player-ctrl'
+export * from './playerCtrl'

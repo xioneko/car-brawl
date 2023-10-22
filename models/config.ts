@@ -1,9 +1,22 @@
-export type Theme = 'Classic' | 'Dark'
+import type Color from 'color'
 
-export type CarStyle = 'Classic' | 'Blue' | 'Red'
+export type Theme = {
+    background: Color
+    foreground: Color
+}
+
+export type CarStyle = {
+    name: Color
+    roof: Color
+    body: Color
+}
+
+export type BulletStyle = {
+    body: Color
+}
 
 export interface UserConfig {
-    name: string
     theme: Theme
     carStyle: CarStyle
+    bulletStyle: BulletStyle
 }

@@ -11,7 +11,7 @@ export function signDeploy(
 ): DeployRequest {
     const sigAlgorithm = 'secp256k1'
     const deploySerialized = deployDataProtobufSerialize(deployData)
-    // eslint-disable-next-line
+    // eslint-disable-next-line import/no-named-as-default-member, new-cap
     const crypt = new elliptic.ec(sigAlgorithm)
     const keyPair = crypt.keyFromPrivate(privateKey)
     const deployer = keyPair.getPublic('hex')

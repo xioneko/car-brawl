@@ -13,11 +13,13 @@ const logger = useLogger(RoomType.CompetitiveRoom)
 export class CompetitiveRoom extends colyseus.Room<RoomState> {
     onCreate() {
         logger.info('New Room Created')
+        this.setState(new RoomState())
+
         this.onMessage(
             MessageType.PlayerCtrl,
             (client, message: PlayerCtrl) => {
-                logger.debug(prettyFormat(message))
-                handlePlayerCtrl(client, message)
+                // logger.debug(prettyFormat(message))
+                handlePlayerCtrl(client, message, this.state)
             },
         )
     }
@@ -28,15 +30,12 @@ export class CompetitiveRoom extends colyseus.Room<RoomState> {
         request: IncomingMessage,
     ) {}
 
-    // When client successfully join the room
     onJoin(client: colyseus.Client, options: RoomOptions, auth: any) {
         // logger.info('New')
         handlePlayerJoin()
     }
 
-    // When a client leaves the room
     onLeave(client: colyseus.Client, consented: boolean) {}
 
-    // Cleanup callback, called after there are no more clients in the room. (see `autoDispose`)
     onDispose() {}
 }
