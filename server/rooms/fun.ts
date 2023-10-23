@@ -6,18 +6,21 @@ import { handlePlayerCtrl, handlePlayerJoin } from './handlers'
 import { RoomState } from '~/models/schema'
 import { MessageType } from '~/models/message'
 import { RoomType, type RoomOptions } from '~/models/room'
-import { PlayerCtrl } from '~/models/player-ctrl'
+import { PlayerCtrl } from '~/models/playerCtrl'
 
 const logger = useLogger(RoomType.FunRoom)
 
 export class FunRoom extends colyseus.Room<RoomState> {
     onCreate() {
-        logger.info(`New Room ${this.roomId} Created`)
+        logger.info(`Room ${this.roomId} Created`)
+        this.setState(new RoomState())
+        this.setPatchRate(1000 / 120) // 120fps
+
         this.onMessage(
             MessageType.PlayerCtrl,
             (client, message: PlayerCtrl) => {
-                logger.debug(prettyFormat(message))
-                handlePlayerCtrl(client, message)
+                // logger.debug(prettyFormat(message))
+                handlePlayerCtrl(this, client, message)
             },
         )
     }
@@ -28,15 +31,17 @@ export class FunRoom extends colyseus.Room<RoomState> {
         request: IncomingMessage,
     ) {}
 
-    // When client successfully join the room
-    onJoin(client: colyseus.Client, options: RoomOptions, auth: any) {
-        // logger.info('New')
-        handlePlayerJoin()
+    async onJoin(client: colyseus.Client, options: RoomOptions, auth: any) {
+        logger.info(
+            `Player ${
+                // @ts-ignore
+                options.account.name ?? options.account.id
+            } join the room ${this.roomId}}`,
+        )
+        await handlePlayerJoin(this, client, options)
     }
 
-    // When a client leaves the room
     onLeave(client: colyseus.Client, consented: boolean) {}
 
-    // Cleanup callback, called after there are no more clients in the room. (see `autoDispose`)
     onDispose() {}
 }

@@ -6,7 +6,7 @@ import { handlePlayerCtrl, handlePlayerJoin } from './handlers'
 import { RoomState } from '~/models/schema'
 import { MessageType } from '~/models/message'
 import { RoomType, type RoomOptions } from '~/models/room'
-import { PlayerCtrl } from '~/models/player-ctrl'
+import { PlayerCtrl } from '~/models/playerCtrl'
 
 const logger = useLogger(RoomType.SingleRoom)
 
@@ -17,7 +17,7 @@ export class SingleRoom extends colyseus.Room<RoomState> {
             MessageType.PlayerCtrl,
             (client, message: PlayerCtrl) => {
                 logger.debug(prettyFormat(message))
-                handlePlayerCtrl(client, message)
+                handlePlayerCtrl(this, client, message)
             },
         )
     }
@@ -31,7 +31,7 @@ export class SingleRoom extends colyseus.Room<RoomState> {
     // When client successfully join the room
     onJoin(client: colyseus.Client, options: RoomOptions, auth: any) {
         // logger.info('New')
-        handlePlayerJoin()
+        handlePlayerJoin(this, client, options)
     }
 
     // When a client leaves the room

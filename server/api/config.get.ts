@@ -1,4 +1,4 @@
-import { getConfigById } from '../database/user-config'
+import { getConfigById } from '../database/userConfig'
 import { GetConfig } from '~/models/protocol'
 
 export default defineEventHandler(async (event): Promise<GetConfig.Res> => {

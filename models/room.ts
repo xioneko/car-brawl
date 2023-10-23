@@ -1,4 +1,4 @@
-import { RevAccount } from './account'
+import type { RevAccount, GuestAccount } from './account'
 
 export enum RoomType {
     CompetitiveRoom = 'Competitive Room',
@@ -6,7 +6,36 @@ export enum RoomType {
     SingleRoom = 'Single Room',
 }
 
-export type RoomOptions = {
+export interface RoomOptions {
+    name: string
+}
+
+export interface GuestOptions extends RoomOptions {
+    account: GuestAccount
+    userConfig: UserConfig
+}
+
+export interface RegularOptions extends RoomOptions {
     account: RevAccount
     accessToken: string
+}
+
+export type RoomUserData = {
+    player: string
+    userConfig: UserConfig
+    carEngine: {
+        power: number
+        angleVelocity: number
+        lastShootAt: number
+    }
+}
+
+export function isGuestOptions(options: RoomOptions): options is GuestOptions {
+    return 'userConfig' in options
+}
+
+export function isRegularOptions(
+    options: RoomOptions,
+): options is RegularOptions {
+    return 'accessToken' in options
 }
