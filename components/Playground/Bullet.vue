@@ -5,15 +5,21 @@
 <script lang="ts" setup>
 import type { Bullet } from '~/models/schema'
 
-defineProps<{
+const props = defineProps<{
     state: Bullet
 }>()
 
-// TODO: 根据状态渲染子弹位置
+const translate = computed(() => {
+    return `translate(${props.state.position.x}px, ${props.state.position.y}px))`
+})
+const rotate = computed(() => {
+    return `rotate(${(props.state.direction * 180) / Math.PI}deg)`
+})
 </script>
 
 <style lang="less" scoped>
 .bullet {
     background-color: v-bind('state.bodyColor');
+    transform: v-bind('translate') v-bind('rotate');
 }
 </style>

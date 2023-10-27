@@ -1,23 +1,39 @@
 import type { RevAccount, GuestAccount } from './account'
+import type { UserConfig } from './config'
 
 export enum RoomType {
-    CompetitiveRoom = 'Competitive Room',
-    FunRoom = 'Fun Room',
-    SingleRoom = 'Single Room',
+    CompetitiveRoom = 'Competitive_Room',
+    FunRoom = 'Fun_Room',
+    SingleRoom = 'Single_Room',
 }
 
 export interface RoomOptions {
-    name: string
-}
-
-export interface GuestOptions extends RoomOptions {
-    account: GuestAccount
+    playerId: string
     userConfig: UserConfig
 }
 
-export interface RegularOptions extends RoomOptions {
+export class GuestOptions implements RoomOptions {
+    playerId: string
+    account: GuestAccount
+    userConfig: UserConfig
+    constructor(account: GuestAccount, config: UserConfig) {
+        this.playerId = account.guestId
+        this.account = account
+        this.userConfig = config
+    }
+}
+
+export class RegularOptions implements RoomOptions {
+    playerId: string
     account: RevAccount
     accessToken: string
+    userConfig: UserConfig
+    constructor(account: RevAccount, accessToken: string, config: UserConfig) {
+        this.playerId = account.revAddr
+        this.account = account
+        this.accessToken = accessToken
+        this.userConfig = config
+    }
 }
 
 export type RoomUserData = {
@@ -28,14 +44,4 @@ export type RoomUserData = {
         angleVelocity: number
         lastShootAt: number
     }
-}
-
-export function isGuestOptions(options: RoomOptions): options is GuestOptions {
-    return 'userConfig' in options
-}
-
-export function isRegularOptions(
-    options: RoomOptions,
-): options is RegularOptions {
-    return 'accessToken' in options
 }

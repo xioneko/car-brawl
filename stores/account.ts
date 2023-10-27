@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
-import type { RevAccount, GuestAccount } from '#imports'
+import type { RevAccount, GuestAccount } from '~/models/account'
 
 export type AccountState = RevAccount | GuestAccount
 
 export const useAccountStore = defineStore({
     id: 'accountStore',
     state: (): AccountState => ({
-        name: 'guest',
+        guestId: 'test_player_id',
     }),
     actions: {},
 })

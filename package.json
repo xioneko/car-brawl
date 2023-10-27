@@ -5,7 +5,7 @@
     "scripts": {
         "clean:rnode": "del data/* !data/*.pem !data/genesis",
         "build": "nuxt build",
-        "dev": "nuxt dev",
+        "dev": "cross-env CONSOLA_LEVEL=4 nuxt dev",
         "generate": "nuxt generate",
         "preview": "nuxt preview",
         "postinstall": "nuxt prepare",
@@ -24,6 +24,7 @@
         "@types/ramda": "^0.29.6",
         "@typescript-eslint/eslint-plugin": "^6.7.4",
         "autoprefixer": "^10.4.16",
+        "consola": "^3.2.3",
         "cross-env": "^7.0.3",
         "del-cli": "^5.1.0",
         "eslint": "^8.51.0",
@@ -41,9 +42,6 @@
         "vue-router": "^4.2.5"
     },
     "dependencies": {
-        "@colyseus/command": "^0.2.1",
-        "@colyseus/schema": "^2.0.18",
-        "@colyseus/ws-transport": "^0.15.1",
         "@ethereumjs/util": "^9.0.0",
         "@nuxt/kit": "^3.7.4",
         "@pinia/nuxt": "^0.5.1",
@@ -51,16 +49,14 @@
         "blakejs": "^1.2.1",
         "bs58": "^5.0.0",
         "color": "^4.2.3",
-        "colyseus": "^0.15.9",
-        "colyseus.js": "^0.15.14",
         "elliptic": "^6.5.4",
         "google-protobuf": "^3.21.2",
-        "hocon-parser": "^1.0.1",
         "js-sha3": "^0.9.2",
         "less": "^4.2.0",
         "lodash": "^4.17.21",
-        "lowdb": "^6.1.0",
-        "ramda": "^0.29.1",
+        "property-watch-decorator": "^1.2.5",
+        "socket.io": "^4.7.2",
+        "socket.io-client": "^4.7.2",
         "std-env": "^3.4.3"
     }
 }

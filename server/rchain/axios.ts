@@ -1,15 +1,10 @@
 import axios from 'axios'
-import parseHocon from 'hocon-parser'
-import { resolvePath } from '@nuxt/kit'
-
-const bootConf = parseHocon(resolvePath('~/rnode.boot.conf'))
-const readConf = parseHocon(resolvePath('~/rnode.read.conf'))
 
 const host = process.env.RNODE_HOST
 const port = {
-    http: bootConf['api-server']['port-http'],
-    admin: bootConf['api-server']['port-admin-http'],
-    read: readConf['api-server']['port-http'],
+    http: process.env.RNODE_HTTP_PORT!,
+    admin: process.env.RNODE_HTTP_ADMIN_PORT!,
+    read: process.env.RNODE_HTTP_READ_PORT!,
 }
 
 export const rnodeHttp = axios.create({

@@ -95,7 +95,7 @@ contract @"CarsBattleGame"(@gameId, @{
         }
       }
     }
-    | // 状态统计
+    | // 奖励分配
     contract @[gameId, "reward"](return) = {
       for (@isActive <- activeCh; @rwdState <- rewardCh) {
         activeCh!(isActive) |

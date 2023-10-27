@@ -10,7 +10,9 @@
         </div>
         <div
             class="car-name absolute left-0 top-20 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-xs dark:text-slate-800/80"
-        ></div>
+        >
+            {{ state.name }}
+        </div>
     </div>
 </template>
 
@@ -19,13 +21,38 @@ import type { Car as CarState } from '~/models/schema'
 const props = defineProps<{
     state: CarState
 }>()
+const emit = defineEmits<{
+    track: [x: number, y: number, direction: number]
+}>()
 
-// TODO: 根据状态渲染小车位置
+const translate = computed(() => {
+    return `translate(${props.state.position.x}px, ${props.state.position.y}px))`
+})
+const rotate = computed(() => {
+    return `rotate(${(props.state.direction * 180) / Math.PI}deg)`
+})
+
+watch(
+    () => props.state.velocity,
+    () => {
+        emit(
+            'track',
+            props.state.position.x,
+            props.state.position.y,
+            props.state.direction,
+        )
+    },
+)
 </script>
 
 <style lang="less" scoped>
+.car {
+    transform: v-bind('translate');
+}
+
 .car-body {
     background-color: v-bind('state.bodyColor');
+    transform: v-bind('rotate');
 }
 
 .car-body.shot {

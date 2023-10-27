@@ -64,23 +64,15 @@
 - 采用 [lowdb](https://github.com/typicode/lowdb) 存储用户偏好配置
 
 ### Client
-- 通过 [MetaMask](https://metamask.io/) 钱包的浏览器扩展对部署内容进行签名 ([personal_sign](https://docs.metamask.io/wallet/reference/personal_sign/))，再让后端服务器代理 Deploy。同时也可通过 MetaMask 获取用户的 ETH 地址 ([eth_accounts](https://docs.metamask.io/wallet/reference/eth_accounts/))，可将其转换成 REV 地址以用于交易或余额查询。
+- 通过 [MetaMask](https://metamask.io/) 钱包的浏览器扩展对部署内容进行签名 ([personal_sign](https://docs.metamask.io/wallet/reference/personal_sign/))，再让后端服务器代理 Deploy。并通过 MetaMask 获取用户的 ETH 地址 ([eth_accounts](https://docs.metamask.io/wallet/reference/eth_accounts/))，将其转换成 REV 地址以用于交易或余额查询。
+- 依赖 [colyseus](https://github.com/colyseus/colyseus) 与服务端进行 WebSocket 通信。游戏中，客户端发送对小车的按键控制消息，服务端据此计算小车状态并响应给客户端，客户端再根据状态信息渲染游戏画面。
 
 ### REV System
-- 初次启动时，固定数量的 REV 会被供应到 RChain 网络上
-- 对于新注册的玩家，会通过智能合约给予一定数量的 REV
-- 玩家若想参与在线对战模式，则需要消耗特定数量的 REV。这些 REV 的一部分被用来预付服务器代理 Deploy 的费用，另一部分则用于对战结束后的奖励分配。
-- 对战结束后，将根据玩家的积分排名分配 REV 奖励
-- 玩家若没有足够的 REV 参与对战，则可以通过私下交易的形式与从其他玩家处获取（游戏平台提供了 REV 转账功能）
+- 初次启动时，固定数量的 REV 会被供应到 RChain 网络上。
+- 对于新注册的玩家，会通过智能合约 ["Faucet"](./contracts/faucet.rho) 给予一定数量的 REV。
+- 玩家若想参与在线对战模式，则需要消耗特定数量的 REV。这些 REV 的一部分被用来预付服务器代理 Deploy 的费用，另一部分则用于对战结束后的奖励分配 (依据积分排名)，具体规则见智能合约 ["CarsBattleGame"](./contracts/game.rho)。
+- 玩家若没有足够的 REV 参与对战，则可以通过私下交易的形式与从其他玩家处获取（游戏平台提供了 REV 转账功能，见智能合约 ["Transfer"](./contracts/transfer.rho)）。
 
-### Contract
-#### Player
-- 查看游戏资产
-- 游戏资产交易
-- 加入/离开一场对战
-#### System
-- 新玩家的初始资产
-- 启动/结束一场对战
 ## Development
 
 ### Run rnode

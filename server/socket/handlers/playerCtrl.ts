@@ -1,12 +1,7 @@
 import _ from 'lodash'
 import { useLogger } from '@nuxt/kit'
-import colyseus from 'colyseus'
-import { SetSchema, MapSchema } from '@colyseus/schema'
-import { format as prettyFormat } from 'pretty-format'
 
-import { PlayerCtrl } from '~/models/playerCtrl'
-import { Bullet, Car, CarStatus, RoomState, Vec2 } from '~/models/schema'
-import type { UserConfig } from '~/models/config'
+import { CarCtrl, Bullet, Car, CarStatus, GameState, Vec2 } from '~/models/game'
 import { RoomUserData } from '~/models/room'
 
 const logger = useLogger('Player Control')
@@ -27,12 +22,12 @@ const Constant = {
 }
 
 export function handlePlayerCtrl(
-    room: colyseus.Room<RoomState>,
-    client: colyseus.Client<RoomUserData>,
-    ctrl: PlayerCtrl,
+    ctrl: CarCtrl,
+    userData: RoomUserData,
+    state: GameState,
 ) {
-    const { cars, bullets } = room.state
-    const { player, userConfig, carEngine: engine } = client.userData!
+    const { cars, bullets } = state
+    const { player, userConfig, carEngine: engine } = userData
     const self = cars.get(player)!
 
     /* ------------------------------- Hit & Shot ------------------------------- */
@@ -64,10 +59,10 @@ export function handlePlayerCtrl(
     engine.angleVelocity *= Constant.AngularDrag
 
     /* --------------------------- Velocity & Position -------------------------- */
-    if (ctrl.up) {
+    if (ctrl.forward) {
         engine.power += Constant.PowerFactor
     }
-    if (ctrl.down) {
+    if (ctrl.backward) {
         engine.power -= Constant.ReverseFactor
     }
     engine.power = _.clamp(engine.power, Constant.MinPower, Constant.MaxPower)
@@ -120,11 +115,14 @@ export function handlePlayerCtrl(
             bullets.add(bullet)
         }
     }
-
-    logger.debug(`Update ${self.name} state:\n`, prettyFormat(self))
+    cars.set(player, self)
+    logger.debug(`Update ${self.name} state:\n`, {
+        cars,
+        bullets,
+    })
 }
 
-function checkIfHit(self: Car, cars: MapSchema<Car>) {
+function checkIfHit(self: Car, cars: Map<string, Car>) {
     for (const [player, car] of cars) {
         if (player === self.player) continue
 
@@ -139,7 +137,7 @@ function checkIfHit(self: Car, cars: MapSchema<Car>) {
     }
 }
 
-function checkIfShot(self: Car, bullets: SetSchema<Bullet>) {
+function checkIfShot(self: Car, bullets: Set<Bullet>) {
     for (const bullet of bullets.values()) {
         if (bullet.owner === self.player) continue
 

@@ -11,7 +11,9 @@ export default <Config>{
         './error.{js,ts,vue}',
     ],
     theme: {
-        extend: {},
+        fontFamily: {
+            body: ['JustForFun'],
+        },
     },
     plugins: [],
     darkMode: 'class',

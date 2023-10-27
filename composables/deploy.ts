@@ -7,6 +7,7 @@ import type {
     GetLatestBlockNumber,
     PostDeploy,
 } from '~/models/protocol'
+import type { RevAccount } from '~/models/account'
 
 export const useDeploy = (account: RevAccount, code: string, ack?: string) => {
     const { data, error, status } = useAsyncData(async () => {
@@ -21,7 +22,7 @@ export const useDeploy = (account: RevAccount, code: string, ack?: string) => {
             phloLimit: 50000, // TODO 根据实际情况选择更合适的值
             validAfterBlockNumber: blockNum,
         }
-
+        if (!('ethAddr' in account)) throw new Error('Assertion Failed')
         const deployRequest = await signMetamask(deployData, account.ethAddr)
 
         const body: PostDeploy.Req = { deployRequest, ack }

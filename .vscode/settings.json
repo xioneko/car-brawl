@@ -3,6 +3,7 @@
         "blakejs",
         "colyseus",
         "composables",
+        "consola",
         "Hocon",
         "keccak",
         "nuxtjs",

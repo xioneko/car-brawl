@@ -25,9 +25,8 @@ services:
         ports:
             - $RNODE_HOST:40401:40401
             - $RNODE_HOST:40402:40402
-            - $RNODE_HOST:40403:40403 # http-api
-            - $RNODE_HOST:40405:40405 # http-admin-api
-            # peer connection
+            - $RNODE_HOST:$RNODE_HTTP_PORT:40403
+            - $RNODE_HOST:$RNODE_HTTP_ADMIN_PORT:40405
             - $RNODE_HOST:40400:40400
             - $RNODE_HOST:40404:40404
 
@@ -41,7 +40,6 @@ services:
             --fork-choice-check-if-stale-interval 30seconds --fork-choice-stale-threshold 30seconds
         ports:
             - $RNODE_HOST:40411:40401
-            - $RNODE_HOST:40413:40403 # http-api
-            # peer connection
+            - $RNODE_HOST:$RNODE_HTTP_READ_PORT:40403
             - $RNODE_HOST:40410:40410
             - $RNODE_HOST:40414:40414

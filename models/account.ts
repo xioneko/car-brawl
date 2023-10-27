@@ -5,16 +5,12 @@ export type RevAccount = {
     | { readonly privKey: string; readonly pubKey?: string }
 )
 
-export type GuestAccount = { id: 'string' }
+export type GuestAccount = { guestId: string }
 
-export function isRevAccount(
-    account: RevAccount | GuestAccount,
-): account is RevAccount {
+export function isRevAccount(account: any): account is RevAccount {
     return 'revAddr' in account
 }
 
-export function isGuestAccount(
-    account: RevAccount | GuestAccount,
-): account is GuestAccount {
-    return 'id' in account
+export function isGuestAccount(account: any): account is GuestAccount {
+    return 'guestId' in account
 }

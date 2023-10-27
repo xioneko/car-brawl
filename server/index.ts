@@ -1,7 +1,5 @@
-import { Server as HttpServer } from 'node:http'
-import colyseus from 'colyseus'
-import { WebSocketTransport } from '@colyseus/ws-transport'
-import { CompetitiveRoom } from './rooms/competitive'
+import { CarBrawlServer } from './socket/CarBrawlServer'
+import { CompetitiveRoom, FunRoom, SingleRoom } from './socket/rooms'
 import { RoomType } from '~/models/room'
 
 if (process.dev) {
@@ -12,12 +10,10 @@ if (process.dev) {
     import('#internal/nitro/entries/node-server')
 }
 
-const nitroApp = useNitroApp()
-const listener = toNodeListener(nitroApp.h3App)
-const gameServer = new colyseus.Server({
-    transport: new WebSocketTransport({
-        server: new HttpServer(listener),
-    }),
+const port = parseInt(process.env.SOCKET_PORT!)
+
+const server = new CarBrawlServer(port, {
+    [RoomType.FunRoom]: FunRoom,
+    [RoomType.CompetitiveRoom]: CompetitiveRoom,
+    [RoomType.SingleRoom]: SingleRoom,
 })
-gameServer.define(RoomType.CompetitiveRoom, CompetitiveRoom)
-gameServer.listen(4567)

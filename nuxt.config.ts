@@ -1,17 +1,29 @@
 export default defineNuxtConfig({
+    runtimeConfig: {
+        public: {
+            wsPort: process.env.SOCKET_PORT,
+        },
+    },
     devtools: {
         enabled: false,
     },
-    devServer: {
-        port: 3000,
-    },
     imports: {
-        dirs: ['models', 'stores'],
+        dirs: ['stores'],
     },
+    css: ['~/assets/less/main.less'],
     modules: ['@pinia/nuxt'],
 
     nitro: {
         entry: '~/server/index.ts',
+        esbuild: {
+            options: {
+                tsconfigRaw: {
+                    compilerOptions: {
+                        experimentalDecorators: true,
+                    },
+                },
+            },
+        },
     },
 
     postcss: {

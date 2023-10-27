@@ -62,21 +62,3 @@ export namespace PostFaucet {
         error?: string
     }
 }
-
-export namespace GetConfig {
-    export interface Req {
-        id: string
-    }
-    export type Res = { config: UserConfig | null }
-}
-
-export namespace PostConfig {
-    export interface Req {
-        id: string
-        config: UserConfig
-    }
-
-    export interface Res {
-        error?: string
-    }
-}
