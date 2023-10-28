@@ -1,7 +1,7 @@
 import { useLogger } from '@nuxt/kit'
 import _ from 'lodash'
 import { ObservableMap, ObservableSet } from '../utils/observable'
-import { CarCtrl, GameState } from '~/models/game'
+import type { CarCtrl } from '~/models/game'
 import { RoomOptions, RoomType, RoomUserData } from '~/models/room'
 
 const logger = useLogger('Room')
@@ -48,6 +48,10 @@ export abstract class Room<
         if (handler) handler(args)
     }
 
+    requestSync() {
+        this._modified = true
+    }
+
     on(event: keyof Events, handler: Events[keyof Events]): void {
         this.messageHandlers.set(event, handler)
     }
@@ -65,6 +69,8 @@ export abstract class Room<
     abstract onDispose(): void
 
     abstract onBeforeSync?(): void
+
+    abstract nextTick(): void
 }
 
 function observable<T extends object>(target: T, onChange: () => void) {

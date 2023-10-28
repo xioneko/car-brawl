@@ -6,7 +6,7 @@ export type AccountState = RevAccount | GuestAccount
 export const useAccountStore = defineStore({
     id: 'accountStore',
     state: (): AccountState => ({
-        guestId: 'test_player_id',
+        guestId: Math.random().toString(36).slice(-8),
     }),
     actions: {},
 })

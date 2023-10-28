@@ -1,25 +1,28 @@
 <template>
-    <div class="bullet absolute -left-1 -top-1 h-2 w-2 rounded-sm"></div>
+    <div
+        class="bullet absolute -left-[1px] -top-[1px] h-[2px] w-[4px] rounded-sm"
+        :style="{
+            backgroundColor: state.style.body,
+            translate: [styles.translate, styles.rotate].join(' '),
+        }"
+    ></div>
 </template>
 
 <script lang="ts" setup>
-import type { Bullet } from '~/models/schema'
+import { Bullet } from '~/models/game'
 
 const props = defineProps<{
     state: Bullet
 }>()
 
-const translate = computed(() => {
-    return `translate(${props.state.position.x}px, ${props.state.position.y}px))`
-})
-const rotate = computed(() => {
-    return `rotate(${(props.state.direction * 180) / Math.PI}deg)`
-})
+const styles = {
+    translate: computed(() => {
+        return `translate(${props.state.position.x}px, ${props.state.position.y}px))`
+    }),
+    rotate: computed(() => {
+        return `rotate(${(props.state.direction * 180) / Math.PI}deg)`
+    }),
+}
 </script>
 
-<style lang="less" scoped>
-.bullet {
-    background-color: v-bind('state.bodyColor');
-    transform: v-bind('translate') v-bind('rotate');
-}
-</style>
+<style lang="less" scoped></style>

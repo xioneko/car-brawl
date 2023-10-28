@@ -1,5 +1,5 @@
-import { CarCtrl, GameState } from './game'
-import { RoomOptions, RoomType } from './room'
+import { type CarCtrl, GameState } from './game'
+import { type RoomOptions, RoomType } from './room'
 
 export interface ServerEvents {
     stateSync: (state: GameState) => void

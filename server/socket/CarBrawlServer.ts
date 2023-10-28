@@ -14,7 +14,7 @@ export class CarBrawlServer {
 
     private roomOfClient: Map<string, string> = new Map()
 
-    private tickRate: number = process.dev ? 20 : 128
+    private tickRate: number = 128
 
     constructor(
         port: number,
@@ -107,9 +107,10 @@ export class CarBrawlServer {
             if (_.isEmpty(this.rooms)) return
 
             for (const room of this.rooms.values()) {
+                room.nextTick()
                 if (!room._modified) continue
                 room.onBeforeSync?.()
-                this.io.to(room.roomId).emit('stateSync', room.state)
+                this.io.to(room.roomId).volatile.emit('stateSync', room.state)
                 room._modified = false
             }
         }, 1000 / this.tickRate)

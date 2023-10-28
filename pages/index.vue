@@ -1,8 +1,8 @@
 <template>
     <div>
-        <NuxtLink class="absolute top-1/2 -translate-y-1/2 text-lg" to="/play"
-            >Guest Mode</NuxtLink
-        >
+        <Button>Connect Metamask</Button>
+        <NuxtLink to="/play">Guest Mode</NuxtLink>
+        <Popup />
     </div>
 </template>
 

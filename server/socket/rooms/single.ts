@@ -4,6 +4,7 @@ import {
     handlePlayerCtrl,
     handlePlayerJoin,
     handlePlayerLeave,
+    realtimeUpdate,
 } from '../handlers'
 import { RoomType, type RoomOptions } from '~/models/room'
 import { CarCtrl, GameState } from '~/models/game'
@@ -18,7 +19,16 @@ export class SingleRoom extends Room<GameState> {
 
     onCarCtrl(clientId: string, ctrl: CarCtrl): void {
         logger.debug(`Receive ctrl state from ${clientId}:\n`, ctrl)
-        handlePlayerCtrl(ctrl, this.userData.get(clientId)!, this.state)
+        handlePlayerCtrl(
+            ctrl,
+            this.userData.get(clientId)!,
+            this.state,
+            this.requestSync.bind(this),
+        )
+    }
+
+    nextTick(): void {
+        realtimeUpdate(this.userData, this.state, this.requestSync.bind(this))
     }
 
     onJoin(clientId: string, options: RoomOptions) {
@@ -27,6 +37,7 @@ export class SingleRoom extends Room<GameState> {
             options,
         )
         handlePlayerJoin(clientId, options, this.userData, this.state)
+        this.requestSync()
     }
 
     onBeforeSync() {

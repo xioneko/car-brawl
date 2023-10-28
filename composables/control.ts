@@ -1,7 +1,7 @@
-import { PlayerCtrl } from '~/models/playerCtrl'
+import { CarCtrl } from '~/models/game'
 
-export const useControl = () => {
-    const ctrl = reactive<PlayerCtrl>({
+export const useCtrlSample = () => {
+    const ctrl = reactive<CarCtrl>({
         forward: false,
         backward: false,
         left: false,

@@ -6,10 +6,14 @@ import type {
     DeployRequest,
     GetLatestBlockNumber,
     PostDeploy,
-} from '~/models/protocol'
+} from '~/models/http'
 import type { RevAccount } from '~/models/account'
 
-export const useDeploy = (account: RevAccount, code: string, ack?: string) => {
+export const useDeployEffects = (
+    account: RevAccount,
+    code: string,
+    ack?: string,
+) => {
     const { data, error, status } = useAsyncData(async () => {
         const { blockNum } = await $fetch<GetLatestBlockNumber.Res>(
             '/api/latestBlockNumber',

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 /**
- * Test: https://runkit.com/xioneko/652f50d954e2a60008795730
+ * Test: https://runkit.com/xioneko/test-rhoexpr-parasing
  */
 export function parseRhoExpr(expr: any) {
     return _.chain(expr)

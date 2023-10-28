@@ -1,7 +1,7 @@
 import blake from 'blakejs'
 import { BinaryWriter } from 'google-protobuf'
 import elliptic from 'elliptic'
-import type { DeployData, DeployRequest } from '~/models/protocol'
+import type { DeployData, DeployRequest } from '~/models/http'
 
 const SystemPrivKey = process.env.BOOT_PRIVATE_KEY!
 
