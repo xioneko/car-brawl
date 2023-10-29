@@ -1,26 +1,30 @@
 <template>
     <div
-        class="bullet absolute -left-[1px] -top-[1px] h-[2px] w-[4px] rounded-sm"
+        class="bullet absolute -left-[1px] -top-[1px] h-[3px] w-[1.5px] rounded-sm"
         :style="{
             backgroundColor: state.style.body,
-            translate: [styles.translate, styles.rotate].join(' '),
+            transform: [styles.translate.value, styles.rotate.value].join(' '),
         }"
     ></div>
 </template>
 
 <script lang="ts" setup>
+import { consola } from 'consola'
 import { Bullet } from '~/models/game'
+
+const logger = consola.withTag('Bullet')
+logger.level = process.dev ? 4 : 3
 
 const props = defineProps<{
     state: Bullet
 }>()
-
 const styles = {
     translate: computed(() => {
-        return `translate(${props.state.position.x}px, ${props.state.position.y}px))`
+        // logger.debug('Bullet', props.state)
+        return `translate(${props.state.position.x}px, ${props.state.position.y}px)`
     }),
     rotate: computed(() => {
-        return `rotate(${(props.state.direction * 180) / Math.PI}deg)`
+        return `rotate(${props.state.direction}rad)`
     }),
 }
 </script>

@@ -1,8 +1,15 @@
 import _ from 'lodash'
 import { useLogger } from '@nuxt/kit'
 
-import Constant from './constant'
-import { CarCtrl, Bullet, Car, CarStatus, GameState, Vec2 } from '~/models/game'
+import {
+    CarCtrl,
+    Bullet,
+    Car,
+    CarStatus,
+    GameState,
+    Vec2,
+    Constant,
+} from '~/models/game'
 import { RoomUserData } from '~/models/room'
 
 const logger = useLogger('Player Control')
@@ -14,33 +21,37 @@ export function handlePlayerCtrl(
     onStateChange: () => void,
 ) {
     const { cars, bullets } = state
-    const { player, userConfig, carEngine: engine } = userData
+    const { player, userConfig } = userData
     const self = cars.get(player)!
 
     /* -------------------------------- Direction ------------------------------- */
     if (ctrl.left) {
-        engine.angleVelocity -= (engine.power > 0 ? 1 : -1) * Constant.TurnSpeed
+        self.angleVelocity -= (self.power > 0 ? 1 : -1) * Constant.TurnSpeed
     }
     if (ctrl.right) {
-        engine.angleVelocity += (engine.power > 0 ? 1 : -1) * Constant.TurnSpeed
+        self.angleVelocity += (self.power > 0 ? 1 : -1) * Constant.TurnSpeed
     }
 
     /* --------------------------- Velocity & Position -------------------------- */
     if (ctrl.forward) {
-        engine.power += Constant.PowerFactor
+        self.power += Constant.PowerFactor
+    } else if (self.power > 0) {
+        self.power = Math.max(0, self.power - Constant.PowerFactor)
     }
     if (ctrl.backward) {
-        engine.power -= Constant.ReverseFactor
+        self.power -= Constant.ReverseFactor
+    } else if (self.power < 0) {
+        self.power = Math.min(0, self.power + Constant.ReverseFactor)
     }
-    engine.power = _.clamp(engine.power, Constant.MinPower, Constant.MaxPower)
+    self.power = _.clamp(self.power, Constant.MinPower, Constant.MaxPower)
 
     /* ---------------------------------- Bullet --------------------------------- */
     if (
         ctrl.shoot &&
         !(self.status === CarStatus.HIT || self.status === CarStatus.SHOT)
     ) {
-        if (engine.lastShootAt < Date.now() - Constant.ShootInterval) {
-            engine.lastShootAt = Date.now()
+        if (self.lastShootAt < Date.now() - Constant.ShootInterval) {
+            self.lastShootAt = Date.now()
             const bullet = new Bullet(
                 player,
                 new Vec2(
@@ -49,18 +60,19 @@ export function handlePlayerCtrl(
                 ),
                 new Vec2(
                     self.velocity.x + Math.sin(self.direction) * 1.25,
-                    self.velocity.y + Math.cos(self.direction) * 1.25,
+                    -self.velocity.y + Math.cos(self.direction) * 1.25,
                 ),
                 self.direction,
                 Constant.BulletLifespan,
                 userConfig.bulletStyle,
             )
+            // logger.debug('Add Bullet', bullet)
             bullets.add(bullet)
-            onStateChange()
         }
     }
-    logger.debug(`Update ${self.name} state:\n`, {
-        cars,
-        bullets,
-    })
+    onStateChange()
+    // logger.debug(`Update ${self.name} state:\n`, {
+    //     cars,
+    //     bullets,
+    // })
 }

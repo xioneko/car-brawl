@@ -21,11 +21,18 @@ export class CarStyle {
     name: string
     roof: string
     body: string
+    track: string
 
-    constructor(nameColor: Color, roofColor: Color, bodyColor: Color) {
+    constructor(
+        nameColor: Color,
+        roofColor: Color,
+        bodyColor: Color,
+        trackColor: Color,
+    ) {
         this.name = nameColor.string()
         this.roof = roofColor.string()
         this.body = bodyColor.string()
+        this.track = trackColor.string()
     }
 }
 
@@ -35,11 +42,13 @@ export namespace CarStyle {
             Color.hsl(0, 0, 0).alpha(0.5),
             Color.hsl(0, 0, 100).alpha(0.375),
             Color.hsl(0, 0, 50),
+            Color.hsl(0, 0, 25).alpha(0.25),
         ),
         red: new CarStyle(
             Color.hsl(0, 0, 90),
             Color.hsl(0, 0, 80),
             Color.hsl(0, 0, 70),
+            Color.hsl(0, 100, 50).alpha(0.25),
         ),
     }
 }

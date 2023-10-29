@@ -1,16 +1,16 @@
 <template>
     <div>
         <div v-if="status === GameStatus.Setup">
-            <Setup @on-finish="status = GameStatus.Pending" />
+            <!-- <Setup @on-finish="status = GameStatus.Pending" /> -->
         </div>
         <div v-else-if="status === GameStatus.Pending">
-            <Pending @on-finish="status = GameStatus.Playing" />
+            <!-- <Pending @on-finish="status = GameStatus.Playing" /> -->
         </div>
-        <div v-else-if="status === GameStatus.Playing">
-            <Playground :game-state="gameState" />
+        <div v-else-if="status === GameStatus.Playing" class="">
+            <Playground class="h-screen" :game-state="gameState" />
         </div>
         <div v-else-if="status === GameStatus.Ended">
-            <Ending @on-finish="status = GameStatus.Setup" />
+            <!-- <Ending @on-finish="status = GameStatus.Setup" /> -->
         </div>
         <User />
         <Popup />
@@ -22,8 +22,11 @@ import _ from 'lodash'
 import { consola } from 'consola'
 import { GameState } from '~/models/game'
 import { socketKey } from '~/models/injection'
+import { RoomType } from '~/models/room'
+import { mockRoomOptions } from '~/test/mock'
 
 const logger = consola.withTag('Game')
+logger.level = process.dev ? 4 : 3
 
 enum GameStatus {
     Setup,
@@ -31,26 +34,49 @@ enum GameStatus {
     Playing,
     Ended,
 }
-const status = ref<GameStatus>(GameStatus.Setup)
+const status = ref<GameStatus>(
+    process.dev ? GameStatus.Playing : GameStatus.Setup,
+)
 const socket = useSocket()
 const gameState = ref<GameState>()
 
+let sendCtrl: NodeJS.Timeout | undefined
+const ctrl = useCtrlSample()
+watch(
+    status,
+    (curr) => {
+        if (curr === GameStatus.Playing) {
+            sendCtrl = setInterval(() => {
+                // logger.debug('Send ctrl to server:\n', ctrl)
+                socket.volatile.emit('carCtrl', ctrl)
+            }, 1000 / 128)
+        } else {
+            clearInterval(sendCtrl)
+        }
+    },
+    { immediate: true },
+)
+
 socket.on('stateSync', (state) => {
     gameState.value = GameState.fromJSON(state)
-    logger.debug('Receive state from Server:\n', gameState.value)
+    // logger.debug('Receive state from Server:\n', gameState.value)
 })
 
-watch(status, (curr) => {
-    let sendCtrl: NodeJS.Timeout | undefined
-    if (curr === GameStatus.Playing) {
-        sendCtrl = setInterval(() => {
-            const ctrl = useCtrlSample()
-            if (_.find(ctrl, _.identity)) {
-                socket.volatile.emit('carCtrl', ctrl)
-            }
-        }, 1000 / 120)
-    } else {
-        clearInterval(sendCtrl)
+onMounted(() => {
+    if (process.dev) {
+        socket.emit(
+            'joinRoom',
+            RoomType.SingleRoom,
+            mockRoomOptions('Test Player', 'guest'),
+        )
+    }
+})
+
+onUnmounted(() => {
+    clearInterval(sendCtrl)
+    socket.off('stateSync')
+    if (process.dev) {
+        socket.emit('leaveRoom')
     }
 })
 

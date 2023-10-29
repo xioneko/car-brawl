@@ -18,7 +18,7 @@ export class SingleRoom extends Room<GameState> {
     }
 
     onCarCtrl(clientId: string, ctrl: CarCtrl): void {
-        logger.debug(`Receive ctrl state from ${clientId}:\n`, ctrl)
+        // logger.debug(`Receive ctrl state from ${clientId}:\n`, ctrl)
         handlePlayerCtrl(
             ctrl,
             this.userData.get(clientId)!,
@@ -41,7 +41,7 @@ export class SingleRoom extends Room<GameState> {
     }
 
     onBeforeSync() {
-        logger.debug('Before Sync')
+        // logger.debug('Before Sync')
     }
 
     onLeave(clientId: string) {

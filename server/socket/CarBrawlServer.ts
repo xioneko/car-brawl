@@ -37,15 +37,15 @@ export class CarBrawlServer {
                         room.type === type &&
                         _.filter(Array.from(this.roomOfClient.values()), {
                             roomId: room.roomId,
-                        }).length <= room.maxPlayers
+                        }).length < room.maxPlayers
                     )
                 })
-                if (room) logger.debug(`Find existing room ${room.roomId}`)
-
                 if (!room) {
                     const RoomCtor = roomRegistry[type]!
                     room = new RoomCtor()
                     this.rooms.set(room.roomId, room)
+                } else {
+                    logger.debug(`Find existing room ${room.roomId}`)
                 }
 
                 this.joinRoom(socket, room)
@@ -71,8 +71,8 @@ export class CarBrawlServer {
                 room._handle(eventName, args)
             })
 
-            socket.on('disconnect', () => {
-                logger.info(`Client ${socket.id} disconnected`)
+            socket.on('disconnect', (reason) => {
+                logger.info(`Client ${socket.id} disconnected: ${reason}`)
             })
         })
 

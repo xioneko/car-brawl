@@ -23,5 +23,11 @@ export const useSocket = () => {
         logger.debug(reason)
     })
 
+    onUnmounted(() => {
+        socket.off('connect')
+        socket.off('connect_error')
+        socket.off('disconnect')
+    })
+
     return socket
 }

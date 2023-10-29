@@ -1,6 +1,6 @@
 import { mockGuestAccount, mockRevAccount } from './account'
 import { UserConfig } from '~/models/config'
-import { GuestOptions, RegularOptions, RoomOptions } from '~/models/room'
+import { GuestOptions, RegularOptions, type RoomOptions } from '~/models/room'
 
 export function mockRoomOptions(
     name: string,

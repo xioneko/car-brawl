@@ -17,18 +17,15 @@ export enum CarStatus {
     HIT = 'hit',
 }
 
-export interface CarEngine {
-    power: number
-    angleVelocity: number
-    lastShootAt: number
-}
-
 export class Car {
     player: string
     name: string
     position: Vec2
+    power: number
     velocity: Vec2
+    angleVelocity: number
     direction: number
+    lastShootAt: number
     points: number
     status: CarStatus
     style: CarStyle
@@ -42,8 +39,11 @@ export class Car {
         this.player = player
         this.name = name
         this.position = new Vec2(position.x, position.y)
+        this.power = 0
         this.velocity = new Vec2(0, 0)
+        this.angleVelocity = 0
         this.direction = 0
+        this.lastShootAt = 0
         this.points = 0
         this.status = CarStatus.NORMAL
         this.style = style
@@ -105,4 +105,19 @@ export interface CarCtrl {
     left: boolean
     right: boolean
     shoot: boolean
+}
+
+export const Constant = {
+    MapWidth: 1500,
+    MapHeight: 1500,
+    MaxPower: 0.08,
+    MinPower: -0.04,
+    PowerFactor: 0.0008,
+    ReverseFactor: 0.0004,
+    TurnSpeed: 0.0025,
+    Drag: 0.95,
+    AngularDrag: 0.85,
+    SafetyRadius: 7.5,
+    ShootInterval: 60,
+    BulletLifespan: 128,
 }

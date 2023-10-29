@@ -37,7 +37,7 @@ export abstract class Room<
         this.type = type
         this.state = observable(initState, () => {
             this._modified = true
-            logger.debug(`Room ${this.roomId} state modified`)
+            // logger.debug(`Room ${this.roomId} state modified`)
         })
         this.roomId = Math.random().toString(36).slice(-8)
         this.maxPlayers = maxPlayers
@@ -50,6 +50,7 @@ export abstract class Room<
 
     requestSync() {
         this._modified = true
+        // logger.debug(`Room ${this.roomId} state modified`)
     }
 
     on(event: keyof Events, handler: Events[keyof Events]): void {

@@ -1,12 +1,17 @@
 <template>
     <div
         class="car absolute"
-        :style="{ translate: [styles.translate, styles.rotate].join(' ') }"
+        :style="{
+            transform: styles.translate.value,
+        }"
     >
         <div
             class="car-body absolute -left-[4px] -top-[8px] h-[16px] w-[8px] rounded-sm"
             :class="{ shot: state.status === CarStatus.SHOT }"
-            :style="{ backgroundColor: state.style.body }"
+            :style="{
+                backgroundColor: state.style.body,
+                transform: styles.rotate.value,
+            }"
         >
             <div
                 class="car-roof absolute left-0 top-[6px] h-[6px] w-[8px] rounded-sm"
@@ -14,7 +19,7 @@
             ></div>
         </div>
         <div
-            class="car-name absolute left-0 top-[26px] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[0.625em]"
+            class="car-name absolute -top-[20px] left-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[0.6em]"
             :style="{ color: state.style.name }"
         >
             {{ state.name }}
@@ -23,22 +28,50 @@
 </template>
 
 <script lang="ts" setup>
-import { Car, CarStatus } from '~/models/game'
+import _ from 'lodash'
+import { consola } from 'consola'
+import { Car, CarStatus, Constant } from '~/models/game'
+
+const logger = consola.withTag('Car')
+logger.level = process.dev ? 4 : 3
+
 const props = defineProps<{
     state: Car
 }>()
 const emit = defineEmits<{
-    track: [x: number, y: number, direction: number]
+    onTrack: [direction: number, x: number, y: number, color: string]
 }>()
 
 const styles = {
     translate: computed(() => {
-        return `translate(${props.state.position.x}px, ${props.state.position.y}px))`
+        return `translate(${props.state.position.x}px, ${props.state.position.y}px)`
     }),
     rotate: computed(() => {
-        return `rotate(${(props.state.direction * 180) / Math.PI}deg)`
+        return `rotate(${props.state.direction}rad)`
     }),
 }
+let track: NodeJS.Timeout | undefined
+onMounted(() => {
+    track = setInterval(() => {
+        const { angleVelocity, power } = props.state
+        if (
+            Math.abs(angleVelocity) > 0.001 ||
+            _.inRange(power, Constant.MinPower, Constant.MaxPower)
+        ) {
+            emit(
+                'onTrack',
+                props.state.direction,
+                props.state.position.x,
+                props.state.position.y,
+                props.state.style.track,
+            )
+        }
+    }, 1000 / 128)
+})
+
+onUnmounted(() => {
+    clearInterval(track)
+})
 </script>
 
 <style lang="less" scoped>

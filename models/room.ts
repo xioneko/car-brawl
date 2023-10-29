@@ -39,9 +39,4 @@ export class RegularOptions implements RoomOptions {
 export type RoomUserData = {
     player: string
     userConfig: UserConfig
-    carEngine: {
-        power: number
-        angleVelocity: number
-        lastShootAt: number
-    }
 }

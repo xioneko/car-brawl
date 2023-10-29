@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Button>Connect Metamask</Button>
+        <button>Connect Metamask</button>
         <NuxtLink to="/play">Guest Mode</NuxtLink>
         <Popup />
     </div>

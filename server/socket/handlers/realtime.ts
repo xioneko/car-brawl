@@ -1,7 +1,13 @@
 import _ from 'lodash'
 import { useLogger } from '@nuxt/kit'
-import Constant from './constant'
-import { Bullet, Car, CarStatus, GameState, Vec2 } from '~/models/game'
+import {
+    Bullet,
+    Car,
+    CarStatus,
+    Constant,
+    GameState,
+    Vec2,
+} from '~/models/game'
 import { RoomUserData } from '~/models/room'
 
 const logger = useLogger('Realtime Update')
@@ -12,20 +18,25 @@ export function realtimeUpdate(
     onStateChange: () => void,
 ) {
     const { cars, bullets } = state
-    for (const [__, { player, carEngine: engine }] of userData) {
+    for (const { player } of userData.values()) {
         const self = cars.get(player)!
         const old = _.cloneDeep(self)
 
         /* -------------------------- Velocity & Direction -------------------------- */
-        self.velocity.x += Math.sin(self.direction) * engine.power
-        self.velocity.y += Math.cos(self.direction) * engine.power
+        self.velocity.x += Math.sin(self.direction) * self.power
+        self.velocity.y -= Math.cos(self.direction) * self.power
+
         const normalize = (value: number, max: number) => {
             if (value > max) value -= max
             if (value < 0) value += max
             return value
         }
+        const round = (value: number, precision: number) => {
+            return value > 0
+                ? _.floor(value, precision)
+                : _.ceil(value, precision)
+        }
 
-        self.direction += engine.angleVelocity
         self.position.x = normalize(
             self.position.x + self.velocity.x,
             Constant.MapWidth,
@@ -34,9 +45,14 @@ export function realtimeUpdate(
             self.position.y + self.velocity.y,
             Constant.MapHeight,
         )
+        self.direction = normalize(
+            self.direction + self.angleVelocity,
+            Math.PI * 2,
+        )
 
-        engine.angleVelocity *= Constant.AngularDrag
-        self.velocity.x *= Constant.Drag
+        self.angleVelocity = round(self.angleVelocity * Constant.AngularDrag, 5)
+        self.velocity.x = round(self.velocity.x * Constant.Drag, 2)
+        self.velocity.y = round(self.velocity.y * Constant.Drag, 2)
 
         /* ------------------------------- Shot & Hit ------------------------------- */
         const killer = checkIfShot(self, bullets)

@@ -1,4 +1,4 @@
-import { CarCtrl } from '~/models/game'
+import type { CarCtrl } from '~/models/game'
 
 export const useCtrlSample = () => {
     const ctrl = reactive<CarCtrl>({

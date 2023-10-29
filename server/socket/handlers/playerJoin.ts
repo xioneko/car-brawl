@@ -18,11 +18,6 @@ export function handlePlayerJoin(
     userData.set(clientId, {
         player,
         userConfig: config,
-        carEngine: {
-            power: 0,
-            angleVelocity: 0,
-            lastShootAt: 0,
-        },
     })
 
     state.cars.set(
