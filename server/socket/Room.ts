@@ -1,16 +1,27 @@
 import { useLogger } from '@nuxt/kit'
 import _ from 'lodash'
+import type { Server } from 'socket.io'
 import { ObservableMap, ObservableSet } from '../utils/observable'
-import type { CarCtrl } from '~/models/game'
+import type { CarCtrl, GameState } from '~/models/game'
 import { RoomOptions, RoomType, RoomUserData } from '~/models/room'
+import {
+    ClientEvents,
+    EventsMap,
+    EventNames,
+    ServerEvents,
+} from '~/models/events'
 
 const logger = useLogger('Room')
 
 export abstract class Room<
-    State extends object,
-    Events extends { [ev: string]: any } = {},
+    State extends GameState,
+    Listens extends EventsMap<Listens> = ClientEvents,
+    Emits extends EventsMap<Emits> = ServerEvents,
 > {
-    private messageHandlers: Map<keyof Events, Events[keyof Events]> = new Map()
+    private server: Server<Listens, Emits>
+
+    private messageHandlers: Map<keyof Listens, Listens[keyof Listens]> =
+        new Map()
 
     _modified: boolean = false
 
@@ -22,28 +33,27 @@ export abstract class Room<
 
     readonly userData: Map<string, RoomUserData> = new Map()
 
-    /**
-     * Observable State
-     *
-     * 注意：只有通过原生方法对 Map 或 Set 的修改才能被检测到
-     */
     state!: State
 
     constructor(
+        server: Server,
         type: RoomType,
         initState: State,
         maxPlayers: number = Number.POSITIVE_INFINITY,
     ) {
+        this.server = server
         this.type = type
-        this.state = observable(initState, () => {
-            this._modified = true
-            // logger.debug(`Room ${this.roomId} state modified`)
-        })
+        // TODO: 是否没必要使用 observable 函数
+        // this.state = observable(initState, () => {
+        //     this._modified = true
+        //     // logger.debug(`Room ${this.roomId} state modified`)
+        // })
+        this.state = initState
         this.roomId = Math.random().toString(36).slice(-8)
         this.maxPlayers = maxPlayers
     }
 
-    _handle(event: keyof Events, ...args: any[]): void {
+    _handle(event: keyof Listens, ...args: any[]): void {
         const handler = this.messageHandlers.get(event)
         if (handler) handler(args)
     }
@@ -53,8 +63,19 @@ export abstract class Room<
         // logger.debug(`Room ${this.roomId} state modified`)
     }
 
-    on(event: keyof Events, handler: Events[keyof Events]): void {
+    on<T extends Exclude<EventNames<Listens>, EventNames<ClientEvents>>>(
+        event: T,
+        handler: Listens[T],
+    ): void {
         this.messageHandlers.set(event, handler)
+    }
+
+    send<T extends Exclude<EventNames<Emits>, EventNames<ServerEvents>>>(
+        event: T,
+        target: string,
+        ...prams: Parameters<Emits[T]>
+    ) {
+        this.server.to(target).emit(event, ...prams)
     }
 
     onAuth(options: RoomOptions): [success: boolean, error?: string] {
@@ -69,9 +90,9 @@ export abstract class Room<
 
     abstract onDispose(): void
 
-    abstract onBeforeSync?(): void
-
     abstract nextTick(): void
+
+    abstract onBeforeSync?(): void
 }
 
 function observable<T extends object>(target: T, onChange: () => void) {

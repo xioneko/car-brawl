@@ -18,7 +18,9 @@ export class CarBrawlServer {
 
     constructor(
         port: number,
-        roomRegistry: { [type in RoomType]: new () => Room<any, any> },
+        roomRegistry: {
+            [type in RoomType]: new (server: Server) => Room<any, any>
+        },
     ) {
         this.io = new Server(port, {
             cors: {
@@ -42,7 +44,7 @@ export class CarBrawlServer {
                 })
                 if (!room) {
                     const RoomCtor = roomRegistry[type]!
-                    room = new RoomCtor()
+                    room = new RoomCtor(this.io)
                     this.rooms.set(room.roomId, room)
                 } else {
                     logger.debug(`Find existing room ${room.roomId}`)

@@ -31,10 +31,7 @@ export class FunRoom extends Room<GameState> {
     }
 
     onJoin(clientId: string, options: RoomOptions) {
-        logger.info(
-            `${clientId} join the room ${this.roomId}} with options:\n`,
-            options,
-        )
+        logger.info(`${clientId} join the room ${this.roomId}}`)
         handlePlayerJoin(clientId, options, this.userData, this.state)
         this.requestSync()
     }

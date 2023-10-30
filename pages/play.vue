@@ -4,7 +4,7 @@
             <!-- <Setup @on-finish="status = GameStatus.Pending" /> -->
         </div>
         <div v-else-if="status === GameStatus.Pending">
-            <!-- <Pending @on-finish="status = GameStatus.Playing" /> -->
+            <Pending @on-finish="status = GameStatus.Playing" />
         </div>
         <div v-else-if="status === GameStatus.Playing" class="">
             <Playground class="h-screen" :game-state="gameState" />
@@ -19,11 +19,18 @@
 
 <script lang="ts" setup>
 import _ from 'lodash'
+import { Socket } from 'socket.io-client'
 import { consola } from 'consola'
-import { GameState } from '~/models/game'
-import { socketKey } from '~/models/injection'
-import { RoomType } from '~/models/room'
 import { mockRoomOptions } from '~/test/mock'
+import {
+    GameState,
+    type CompetitiveServerEvents,
+    type ClientEvents,
+    RoomType,
+    socketKey,
+    isCompetitiveGameState,
+    CompetitiveGameState,
+} from '~/models'
 
 const logger = consola.withTag('Game')
 logger.level = process.dev ? 4 : 3
@@ -35,7 +42,7 @@ enum GameStatus {
     Ended,
 }
 const status = ref<GameStatus>(
-    process.dev ? GameStatus.Playing : GameStatus.Setup,
+    process.dev ? GameStatus.Pending : GameStatus.Setup,
 )
 const socket = useSocket()
 const gameState = ref<GameState>()
@@ -58,15 +65,20 @@ watch(
 )
 
 socket.on('stateSync', (state) => {
-    gameState.value = GameState.fromJSON(state)
+    gameState.value = isCompetitiveGameState(state)
+        ? CompetitiveGameState.fromJSON(state)
+        : GameState.fromJSON(state)
     // logger.debug('Receive state from Server:\n', gameState.value)
+})
+;(socket as Socket<CompetitiveServerEvents, ClientEvents>).on('endGame', () => {
+    status.value = GameStatus.Ended
 })
 
 onMounted(() => {
     if (process.dev) {
         socket.emit(
             'joinRoom',
-            RoomType.FunRoom,
+            RoomType.CompetitiveRoom,
             mockRoomOptions('Test Player', 'guest'),
         )
     }

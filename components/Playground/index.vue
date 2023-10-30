@@ -33,15 +33,23 @@
                 />
             </div>
         </div>
-        <PlaygroundDashboard class="absolute" :source="localCar" />
+        <div class="fixed left-6 top-6">
+            {{
+                isCompetitiveGameState(gameState)
+                    ? dayjs(gameState.timeLeft).format('m:ss')
+                    : ''
+            }}
+        </div>
+        <!-- <PlaygroundDashboard class="absolute" :source="localCar" /> -->
         <!-- <PlaygroundRanking /> -->
     </div>
 </template>
 
 <script lang="ts" setup>
 import _ from 'lodash'
+import dayjs from 'dayjs'
 import { consola } from 'consola'
-import { Car, GameState } from '~/models/game'
+import { Car, isCompetitiveGameState, GameState } from '~/models/game'
 
 const logger = consola.withTag('Playground')
 logger.level = process.dev ? 4 : 3

@@ -15,7 +15,7 @@ const logger = useLogger('Realtime Update')
 export function realtimeUpdate(
     userData: Map<string, RoomUserData>,
     state: GameState,
-    onStateChange: () => void,
+    onStateChange?: () => void,
 ) {
     const { cars, bullets } = state
     for (const { player } of userData.values()) {
@@ -78,7 +78,7 @@ export function realtimeUpdate(
             self.status = CarStatus.NORMAL
         }
 
-        if (!_.isEqual(self, old)) onStateChange()
+        if (!_.isEqual(self, old)) onStateChange?.()
     }
 
     /* --------------------------------- Bullet --------------------------------- */
@@ -89,7 +89,7 @@ export function realtimeUpdate(
         }
         bullet.position.x += bullet.velocity.x
         bullet.position.y -= bullet.velocity.y
-        onStateChange()
+        onStateChange?.()
     }
 }
 

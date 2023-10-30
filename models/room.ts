@@ -36,7 +36,11 @@ export class RegularOptions implements RoomOptions {
     }
 }
 
-export type RoomUserData = {
+export interface RoomUserData {
     player: string
     userConfig: UserConfig
+}
+
+export interface PendingProgress {
+    playersToWait: number
 }

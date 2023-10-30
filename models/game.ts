@@ -1,3 +1,4 @@
+import ms, { type StringValue } from 'ms'
 import type { CarStyle, BulletStyle } from './config'
 
 export class Vec2 {
@@ -81,9 +82,9 @@ export class GameState {
     cars: Map<string, Car>
     bullets: Set<Bullet>
 
-    constructor() {
-        this.cars = new Map<string, Car>()
-        this.bullets = new Set<Bullet>()
+    constructor(cars?: [string, Car][], bullets?: Bullet[]) {
+        this.cars = new Map(cars)
+        this.bullets = new Set<Bullet>(bullets)
     }
 
     toJSON() {
@@ -94,11 +95,40 @@ export class GameState {
     }
 
     static fromJSON(json: any) {
-        const state = new GameState()
-        state.cars = new Map<string, Car>(json.cars)
-        state.bullets = new Set<Bullet>(json.bullets)
-        return state
+        return new GameState(json.cars, json.bullets)
     }
+}
+
+export class CompetitiveGameState extends GameState {
+    timeLeft: number
+
+    constructor(
+        timeLeft: StringValue | number = '8 minutes',
+        cars?: [string, Car][],
+        bullets?: Bullet[],
+    ) {
+        super(cars, bullets)
+        this.timeLeft = typeof timeLeft === 'string' ? ms(timeLeft) : timeLeft
+    }
+
+    toJSON() {
+        return {
+            ...super.toJSON(),
+            timeLeft: this.timeLeft,
+        }
+    }
+
+    static fromJSON(json: any): CompetitiveGameState {
+        return new CompetitiveGameState(json.timeLeft, json.cars, json.bullets)
+    }
+}
+
+export function isCompetitiveGameState(
+    state: any,
+): state is CompetitiveGameState {
+    return (
+        state instanceof CompetitiveGameState || state?.timeLeft !== undefined
+    )
 }
 
 export interface CarCtrl {
