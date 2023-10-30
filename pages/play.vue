@@ -66,7 +66,7 @@ onMounted(() => {
     if (process.dev) {
         socket.emit(
             'joinRoom',
-            RoomType.SingleRoom,
+            RoomType.FunRoom,
             mockRoomOptions('Test Player', 'guest'),
         )
     }

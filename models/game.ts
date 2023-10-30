@@ -26,6 +26,7 @@ export class Car {
     angleVelocity: number
     direction: number
     lastShootAt: number
+    lastBeShotAt: number
     points: number
     status: CarStatus
     style: CarStyle
@@ -44,6 +45,7 @@ export class Car {
         this.angleVelocity = 0
         this.direction = 0
         this.lastShootAt = 0
+        this.lastBeShotAt = 0
         this.points = 0
         this.status = CarStatus.NORMAL
         this.style = style
@@ -119,5 +121,6 @@ export const Constant = {
     AngularDrag: 0.85,
     SafetyRadius: 7.5,
     ShootInterval: 60,
+    InvincibleInterval: 1024,
     BulletLifespan: 128,
 }

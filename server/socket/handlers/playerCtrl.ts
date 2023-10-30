@@ -50,7 +50,7 @@ export function handlePlayerCtrl(
         ctrl.shoot &&
         !(self.status === CarStatus.HIT || self.status === CarStatus.SHOT)
     ) {
-        if (self.lastShootAt < Date.now() - Constant.ShootInterval) {
+        if (Date.now() > self.lastShootAt + Constant.ShootInterval) {
             self.lastShootAt = Date.now()
             const bullet = new Bullet(
                 player,

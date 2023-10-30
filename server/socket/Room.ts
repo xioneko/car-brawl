@@ -14,7 +14,7 @@ export abstract class Room<
 
     _modified: boolean = false
 
-    type: RoomType
+    readonly type: RoomType
 
     readonly roomId: string
 

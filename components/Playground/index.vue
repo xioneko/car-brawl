@@ -33,17 +33,7 @@
                 />
             </div>
         </div>
-        <div class="absolute left-5 top-5">
-            <div class="relative">
-                Velocity:
-                {{ `x: ${localCar?.velocity.x}, y: ${localCar?.velocity.y}` }}
-            </div>
-            <div class="relative">Position: {{ localCar?.position }}</div>
-            <div class="relative">Direction: {{ localCar?.direction }}</div>
-            <div class="relative">Power: {{ localCar?.power }}</div>
-            <div class="relative">Velocity: {{ localCar?.velocity }}</div>
-            <div class="relative">AngleVel: {{ localCar?.angleVelocity }}</div>
-        </div>
+        <PlaygroundDashboard class="absolute" :source="localCar" />
         <!-- <PlaygroundRanking /> -->
     </div>
 </template>
@@ -59,12 +49,11 @@ logger.level = process.dev ? 4 : 3
 const account = useAccountStore()
 const userConf = useUserConfigStore()
 const canvas = ref<HTMLCanvasElement | null>()
+const localCar = ref<Car>()
 
 const props = defineProps<{
     gameState?: GameState
 }>()
-
-const localCar = ref<Car>()
 
 const styles = {
     theme: userConf.theme,

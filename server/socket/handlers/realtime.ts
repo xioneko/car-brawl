@@ -55,21 +55,27 @@ export function realtimeUpdate(
         self.velocity.y = round(self.velocity.y * Constant.Drag, 2)
 
         /* ------------------------------- Shot & Hit ------------------------------- */
-        const killer = checkIfShot(self, bullets)
-        if (killer) {
-            self.status = CarStatus.SHOT
-            cars.get(killer)!.points++
-        } else if (checkIfHit(self, cars)) {
-            self.status = CarStatus.HIT
-        } else {
-            self.status = CarStatus.NORMAL
-        }
-        if (self.status === CarStatus.HIT || self.status === CarStatus.SHOT) {
-            self.position = new Vec2(
+        const rebirth = (car: Car) => {
+            car.position = new Vec2(
                 _.random(0, Constant.MapWidth),
                 _.random(0, Constant.MapHeight),
             )
-            self.velocity = new Vec2(0, 0)
+            car.velocity = new Vec2(0, 0)
+        }
+        const killer = checkIfShot(self, bullets)
+        if (killer) {
+            self.status = CarStatus.SHOT
+            self.lastBeShotAt = Date.now()
+            cars.get(killer)!.points++
+            rebirth(self)
+        } else if (checkIfHit(self, cars)) {
+            self.status = CarStatus.HIT
+            rebirth(self)
+        } else if (
+            Date.now() >
+            self.lastBeShotAt + Constant.InvincibleInterval
+        ) {
+            self.status = CarStatus.NORMAL
         }
 
         if (!_.isEqual(self, old)) onStateChange()
@@ -88,6 +94,7 @@ export function realtimeUpdate(
 }
 
 function checkIfShot(self: Car, bullets: Set<Bullet>) {
+    if (self.status === CarStatus.SHOT) return
     for (const bullet of bullets.values()) {
         if (bullet.owner === self.player) continue
 
@@ -96,7 +103,7 @@ function checkIfShot(self: Car, bullets: Set<Bullet>) {
                 (bullet.position.y - self.position.y) ** 2,
         )
         if (distance < Constant.SafetyRadius) {
-            logger.debug(`${self.name} shot by ${bullet.owner}`)
+            logger.debug(`${self.player} shot by ${bullet.owner}`)
             return bullet.owner
         }
     }
