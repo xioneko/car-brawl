@@ -15,15 +15,6 @@ export default defineNuxtConfig({
 
     nitro: {
         entry: '~/server/index.ts',
-        esbuild: {
-            options: {
-                tsconfigRaw: {
-                    compilerOptions: {
-                        experimentalDecorators: true,
-                    },
-                },
-            },
-        },
     },
 
     postcss: {
