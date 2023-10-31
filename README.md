@@ -2,7 +2,7 @@
 
 🚧 **Working in progress**
 
-## Learning
+## 📖 Learning
 
 <ul>
   <li><img src="https://i.ibb.co/Qcs9FJD/js.png" alt="js" border="0"><a href="https://zh.javascript.info/"> JavaScript</a></li>
@@ -59,7 +59,7 @@
   <ul>
 </details>
 
-## Overall Design
+## 💡 Overall Design
 
 ### Game
 
@@ -85,10 +85,19 @@
 
 -   初次启动时，固定数量的 REV 会被供应到 RChain 网络上。
 -   对于新注册的玩家，会通过智能合约 ["Faucet"](./contracts/faucet.rho) 给予一定数量的 REV。
--   玩家若想参与在线对战模式，则需要消耗特定数量的 REV。这些 REV 的一部分被用来预付服务器代理 Deploy 的费用，另一部分则用于对战结束后的奖励分配 (依据积分排名)，具体规则见智能合约 ["CarBrawl"](./contracts/game.rho)。
+-   玩家若想参与竞技模式，则需要消耗特定数量的 REV。这些 REV 的一部分被用来预付服务器代理 Deploy 的费用，另一部分则用于对战结束后的奖励分配 (依据积分排名)，具体规则见智能合约 ["CarBrawl"](./contracts/game.rho)。
 -   玩家若没有足够的 REV 参与对战，则可以通过私下交易的形式与从其他玩家处获取（游戏平台提供了 REV 转账功能，见智能合约 ["Transfer"](./contracts/transfer.rho)）。
 
-## Development
+## 🚩 Roadmap
+- [x] 实现 Rchain HTTP client
+- [x] 实现基本的智能合约
+- [x] 实现基本的游戏服务器 & 客户端
+- [ ] 连接 Metamask 钱包和完善账户功能
+- [ ] 在竞技模式中加入 Rchain 交互，实现 REV 系统
+- [ ] 美化 UI
+- [ ] ...
+
+## 🛠️ Development
 
 ### Node.js v18.x
 
