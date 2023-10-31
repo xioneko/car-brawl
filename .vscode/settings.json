@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
         "blakejs",
+        "colyseus",
+        "composables",
+        "consola",
         "Hocon",
         "keccak",
         "nuxtjs",
@@ -17,5 +20,8 @@
         "properties",
         "typescript",
         "vue"
+    ],
+    "css.customData": [
+        ".vscode/tailwind.json"
     ]
 }

@@ -1,40 +1,45 @@
 x-rnode: &default-rnode
-  image: rchain/rnode:v0.12.8
-  user: root
-  restart: always
-  networks:
-    - rchain-net
+    image: rchain/rnode:v0.12.8
+    user: root
+    restart: always
+    networks:
+        - rchain-net
 
 networks:
-  rchain-net:
-
+    rchain-net:
 
 services:
-  boot:
-    <<: *default-rnode
-    container_name: boot
-    command: run --config-file /config/rnode.conf
-    volumes:
-      - ./data:/data # rnode storage
-      - ./rnode.boot.conf:/config/rnode.conf
-    ports:
-      - $RNODE_HOST:40401:40401
-      - $RNODE_HOST:40402:40402
-      - $RNODE_HOST:40403:40403 # http-api
-      - $RNODE_HOST:40405:40405 # http-admin-api
-      # peer connection
-      - $RNODE_HOST:40400:40400
-      - $RNODE_HOST:40404:40404
+    boot:
+        <<: *default-rnode
+        container_name: boot
+        command:
+            run -s --validator-private-key $BOOT_PRIVATE_KEY --allow-private-addresses --no-upnp
+            --host boot --approve-duration 5seconds --approve-interval 5seconds
+            --data-dir /data
 
-  read:
-    <<: *default-rnode
-    container_name: read
-    command: run --config-file /config/rnode.conf
-    volumes:
-      - ./rnode.read.conf:/config/rnode.conf
-    ports:
-      - $RNODE_HOST:40411:40401
-      - $RNODE_HOST:40413:40403 # http-api
-      # peer connection
-      - $RNODE_HOST:40410:40410
-      - $RNODE_HOST:40414:40414
+        volumes:
+            - ./rnode/wallets.txt:/data/genesis/wallets.txt
+            - ./rnode/bonds.txt:/data/genesis/bonds.txt
+            - ./rnode/node.certificate.pem:/data/node.certificate.pem
+            - ./rnode/node.key.pem:/data/node.key.pem
+        ports:
+            - $RNODE_HOST:40401:40401
+            - $RNODE_HOST:40402:40402
+            - $RNODE_HOST:$RNODE_HTTP_PORT:40403
+            - $RNODE_HOST:$RNODE_HTTP_ADMIN_PORT:40405
+            - $RNODE_HOST:40400:40400
+            - $RNODE_HOST:40404:40404
+
+    read:
+        <<: *default-rnode
+        container_name: read
+        command:
+            run -b "$BOOT_RNODE_ADDRESS" --allow-private-addresses --no-upnp --host read
+            --protocol-port 40410 --discovery-port 40414
+            --approve-duration 5seconds --approve-interval 5seconds
+            --fork-choice-check-if-stale-interval 30seconds --fork-choice-stale-threshold 30seconds
+        ports:
+            - $RNODE_HOST:40411:40401
+            - $RNODE_HOST:$RNODE_HTTP_READ_PORT:40403
+            - $RNODE_HOST:40410:40410
+            - $RNODE_HOST:40414:40414

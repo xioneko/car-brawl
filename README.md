@@ -1,12 +1,14 @@
-# rchain-game
+# Car Brawl
 
 🚧 **Working in progress**
 
 ## Learning
+
 <ul>
   <li><img src="https://i.ibb.co/Qcs9FJD/js.png" alt="js" border="0"><a href="https://zh.javascript.info/"> JavaScript</a></li>
   <li><img src="https://www.typescriptlang.org/favicon-32x32.png?v=8944a05a8b601855de116c8a56d3b3ae" width=15><a href="https://www.typescriptlang.org/docs/"> TypeScript</a></li>
-  <li><img src="https://cn.vuejs.org/logo.svg" width=15> <a href='https://cn.vuejs.org/guide/introduction.html'>Vue.js</a></li>
+  <li><img src="https://cn.vuejs.org/logo.svg" width=15> <a href='https://cn.vuejs.org/guide/introduction.html'>Vue</a></li>
+  <li><img src="https://img.icons8.com/?size=256&id=nvrsJYs7j9Vb&format=png" width=15> <a href="https://nuxt.com/docs/getting-started/introduction">Nuxt</a></li>
   <li><img width=15 src="https://s2.coinmarketcap.com/static/img/coins/64x64/2021.png"/><a href="https://github.com/JoshOrndorff/LearnRholangByExample/blob/master/README_CN.md"> Rholang</a></li>
 </ul>
 
@@ -58,52 +60,35 @@
 </details>
 
 ## Overall Design
-### Server
-- 使用 Docker 部署 RChain 网络，包含一个 Validator 节点和一个 Observer (只读)节点。Validator 节点提供了 Deploy、Propose 等 HTTP API，Observer 节点提供了可用来查询 REV 余额的 explore-deploy HTTP API。[rnode-api spec](https://web.archive.org/web/20210120073115/https://developer.rchain.coop/rnode-api)
-- 参考 [tgrospic/rnode-http-js](https://github.com/tgrospic/rnode-http-js) 和 [tgrospic/rnode-client-js-dev-test](https://github.com/tgrospic/rnode-client-js-dev-test) 开发 rnode web client。客户端的 Deploy 请求会通过后端代理部署到 rchain 上
-- 采用 [lowdb](https://github.com/typicode/lowdb) 存储用户偏好配置
 
-### Client
-- 通过 [MetaMask](https://metamask.io/) 钱包的浏览器扩展对部署内容进行签名 ([personal_sign](https://docs.metamask.io/wallet/reference/personal_sign/))，再让后端服务器代理 Deploy。同时也可通过 MetaMask 获取用户的 ETH 地址 ([eth_accounts](https://docs.metamask.io/wallet/reference/eth_accounts/))，可将其转换成 REV 地址以用于交易或余额查询。
+### Game
+
+-   游戏过程中服务端与客户端之间的通信建立在 [Socket.io](https://socket.io/) 上，服务端主要负责计算小车、子弹的状态并同步到客户端，客户端主要负责渲染游戏画面并捕获玩家的按键控制信息
+-   游戏包含三种模式，竞技 (Competitive)、娱乐 (Fun)、单人 (Single)
+    ||竞技|娱乐|单人|
+    |-|-|-|-|
+    |玩家数量|4|—|1|
+    |限时|8 min|—|—|
+    |入场券|需要|—|—|
+    |奖励|有|—|—|
+
+-   一种游戏模式对应服务端一种 Room 实现，当 Room 中的玩家数量达到最大限制时，新的 Room 会被创建
+-   除非玩家手动退出房间，或房间中已经没有任何玩家，否则服务端将保留玩家的游戏状态，当玩家重新加入房间时会自动恢复
+
+### Rchain
+
+-   在服务端上使用 Docker 部署 RChain 网络，包含一个 Validator 节点和一个 Observer (只读)节点。Validator 节点提供了 Deploy、Propose 等 HTTP API，Observer 节点提供了可用来查询 REV 余额的 explore-deploy HTTP API，见 [rnode-api-spec](https://web.archive.org/web/20210120073115/https://developer.rchain.coop/rnode-api)。
+-   参考 [tgrospic/rnode-http-js](https://github.com/tgrospic/rnode-http-js) 和 [tgrospic/rnode-client-js-dev-test](https://github.com/tgrospic/rnode-client-js-dev-test) 开发 rnode web client。客户端的 Deploy 请求会通过服务端代理部署到 rchain 上。
+-   客户端通过 [MetaMask](https://metamask.io/) 钱包的浏览器扩展对部署内容进行签名 ([personal_sign](https://docs.metamask.io/wallet/reference/personal_sign/))，再让后端服务器代理 Deploy。并通过 MetaMask 获取用户的 ETH 地址 ([eth_accounts](https://docs.metamask.io/wallet/reference/eth_accounts/))，将其转换成 REV 地址以用于交易或余额查询。
 
 ### REV System
-- 初次启动时，固定数量的 REV 会被供应到 RChain 网络上
-- 对于新注册的玩家，会通过智能合约给予一定数量的 REV
-- 玩家若想参与在线对战模式，则需要消耗特定数量的 REV。这些 REV 的一部分被用来预付服务器代理 Deploy 的费用，另一部分则用于对战结束后的奖励分配。
-- 对战结束后，将根据玩家的积分排名分配 REV 奖励
-- 玩家若没有足够的 REV 参与对战，则可以通过私下交易的形式与从其他玩家处获取（游戏平台提供了 REV 转账功能）
 
-### Contract
-#### Player
-- 查看游戏资产
-- 游戏资产交易
-- 加入/离开一场对战
-#### System
-- 新玩家的初始资产
-- 启动/结束一场对战
+-   初次启动时，固定数量的 REV 会被供应到 RChain 网络上。
+-   对于新注册的玩家，会通过智能合约 ["Faucet"](./contracts/faucet.rho) 给予一定数量的 REV。
+-   玩家若想参与在线对战模式，则需要消耗特定数量的 REV。这些 REV 的一部分被用来预付服务器代理 Deploy 的费用，另一部分则用于对战结束后的奖励分配 (依据积分排名)，具体规则见智能合约 ["CarBrawl"](./contracts/game.rho)。
+-   玩家若没有足够的 REV 参与对战，则可以通过私下交易的形式与从其他玩家处获取（游戏平台提供了 REV 转账功能，见智能合约 ["Transfer"](./contracts/transfer.rho)）。
+
 ## Development
-
-### Run rnode
-
-[Install Docker Desktop on Windows](https://docs.docker.com/desktop/install/windows-install/)
-
-[Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
-
-
-```bash
-# 运行 Windows Docker Desktop 
-# 或在 Ubuntu 上开启 docker service
-sudo service docker start
-
-# 运行 rnode
-docker compose up -d
-
-# 显示 rnode 日志
-docker compose logs -f
-
-# 停止运行
-docker compose down
-```
 
 ### Node.js v18.x
 
@@ -111,8 +96,10 @@ docker compose down
 
 [Install Node.js on Linux](https://github.com/nodesource/distributions#installation-instructions)
 
+
 ### VS Code
-克隆仓库到本地后，在 VS Code 中打开项目文件夹，根据提示安装工作区建议的扩展，也可直接在扩展面板中搜索`@recommended`
+
+克隆仓库到本地后，在 VS Code 中打开项目文件夹，在扩展面板中搜索 `@recommended` 安装扩展插件
 
 ### Install dependencies
 
@@ -122,4 +109,32 @@ corepack enable pnpm
 
 # 安装依赖
 pnpm install
+```
+
+### Run & Build
+```bash
+# 开发模式
+pnpm dev # http://localhost:<port>，其中 <port> 在 .env 文件中定义
+
+# 构建
+pnpm build # 输出目录为 .output
+```
+
+### Run rnode
+
+[Install Docker Desktop on Windows](https://docs.docker.com/desktop/install/windows-install/)
+
+[Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+
+```bash
+# 运行 Windows Docker Desktop
+# 或在 Ubuntu 上开启 docker service
+sudo service docker start
+
+# 启动
+docker compose up
+
+# 终止
+docker compose down
+
 ```

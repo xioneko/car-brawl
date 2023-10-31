@@ -1,0 +1,36 @@
+new assert, stdout(`rho:io:stdout`), compare in {
+    new return in {
+        @"mergeSort"!([["a", 6], ["b", 5], ["c", 4], ["c", 3], ["d", 2], ["e", 1]], *compare, *return) | for (@sortedList <- return) {
+            assert!(sortedList, [["e", 1], ["d", 2], ["c", 3], ["c", 4], ["b", 5], ["a", 6]], "Reversed long list")
+        }
+    }
+    |
+    new return in {
+        @"mergeSort"!([], *compare, *return) | for (@sortedList <- return) {
+            assert!(sortedList, [], "Empty list")
+        }
+    }
+    |
+    new return in {
+        @"mergeSort"!([["a", 1]], *compare, *return) | for (@sortedList <- return) {
+            assert!(sortedList, [["a", 1]], "One item")
+        }
+    }
+    |
+    new return in {
+        @"mergeSort"!([["a", 2], ["b", 1]], *compare, *return) | for (@sortedList <- return) {
+            assert!(sortedList, [["b", 1], ["a", 2]], "Two items")
+        }
+    }
+    |
+    contract assert(@o1, @o2, @msg) = {
+        match o1 == o2 {
+            true => {stdout!("SUCCESS: " ++ msg)}
+            false => {stdout!("FAIL: " ++ msg)}
+        }
+    }
+    |
+    contract compare(@a, @b, return) = {
+      return!(a.nth(1) < b.nth(1))
+    }
+}

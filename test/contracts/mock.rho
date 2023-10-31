@@ -1,0 +1,3 @@
+contract @"Transfer"(@from, @to, @amount, return) = {
+  return!((true, "Transfer successful."))
+}
