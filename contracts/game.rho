@@ -1,4 +1,4 @@
-contract @"CarsBattleGame"(@gameId, @{
+contract @"CarBrawl"(@gameId, @{
   "host": host,     // string
   "cost": cost,     // int
   "punish": punish  // int

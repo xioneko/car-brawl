@@ -1,5 +1,5 @@
 new log(`rho:io:stdout`) in {
-  @"CarsBattleGame"!("id", {
+  @"CarBrawl"!("id", {
     "host": "fake",
     "cost": 100000,
     "punish": 30000,
