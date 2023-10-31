@@ -90,6 +90,36 @@
 
 ## Development
 
+### Node.js v18.x
+
+[Download for Windows](https://nodejs.org/en)
+
+[Install Node.js on Linux](https://github.com/nodesource/distributions#installation-instructions)
+
+
+### VS Code
+
+克隆仓库到本地后，在 VS Code 中打开项目文件夹，在扩展面板中搜索 `@recommended` 安装扩展插件
+
+### Install dependencies
+
+```bash
+# 启用 pnpm
+corepack enable pnpm
+
+# 安装依赖
+pnpm install
+```
+
+### Run & Build
+```bash
+# 开发模式
+pnpm dev # http://localhost:<port>，其中 <port> 在 .env 文件中定义
+
+# 构建
+pnpm build # 输出目录为 .output
+```
+
 ### Run rnode
 
 [Install Docker Desktop on Windows](https://docs.docker.com/desktop/install/windows-install/)
@@ -107,24 +137,4 @@ docker compose up
 # 终止
 docker compose down
 
-```
-
-### Node.js v18.x
-
-[Download for Windows](https://nodejs.org/en)
-
-[Install Node.js on Linux](https://github.com/nodesource/distributions#installation-instructions)
-
-### VS Code
-
-克隆仓库到本地后，在 VS Code 中打开项目文件夹，在扩展面板中搜索 `@recommended` 安装扩展插件
-
-### Install dependencies
-
-```bash
-# 启用 pnpm
-corepack enable pnpm
-
-# 安装依赖
-pnpm install
 ```
