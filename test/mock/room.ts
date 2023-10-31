@@ -12,8 +12,8 @@ export function mockRoomOptions(
         case 'regular':
             return new RegularOptions(
                 mockRevAccount(),
-                'accessToken', // TODO: 与 faucet 合约一同测试
                 new UserConfig(name),
+                'accessToken', // TODO: 与 faucet 合约一同测试
             )
     }
 }
