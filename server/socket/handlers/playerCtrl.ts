@@ -23,6 +23,20 @@ export function handlePlayerCtrl(
     const { cars, bullets } = state
     const { player, userConfig } = userData
     const self = cars.get(player)!
+    /* --------------------------------- Reborn --------------------------------- */
+    const reborn = (car: Car) => {
+        car.position = new Vec2(
+            _.random(0, Constant.MapWidth),
+            _.random(0, Constant.MapHeight),
+        )
+        car.velocity = new Vec2(0, 0)
+    }
+    if (self.status === CarStatus.DEATH) {
+        logger.debug(`${self.name} is to be reborn`)
+        reborn(self)
+        self.lastRebirthAt = Date.now()
+        self.status = CarStatus.INVINCIBLE
+    }
 
     /* -------------------------------- Direction ------------------------------- */
     if (ctrl.left) {
@@ -46,10 +60,7 @@ export function handlePlayerCtrl(
     self.power = _.clamp(self.power, Constant.MinPower, Constant.MaxPower)
 
     /* ---------------------------------- Bullet --------------------------------- */
-    if (
-        ctrl.shoot &&
-        !(self.status === CarStatus.HIT || self.status === CarStatus.SHOT)
-    ) {
+    if (ctrl.shoot && self.status !== CarStatus.INVINCIBLE) {
         if (Date.now() > self.lastShootAt + Constant.ShootInterval) {
             self.lastShootAt = Date.now()
             const bullet = new Bullet(

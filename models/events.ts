@@ -12,9 +12,10 @@ export interface ServerEvents {
 }
 
 export interface ClientEvents {
-    carCtrl: (ctrl: CarCtrl) => void
-    joinRoom: (type: RoomType, options: RoomOptions) => void
-    leaveRoom: () => void
+    carCtrl: (player: string, ctrl: CarCtrl) => void
+    joinRoom: (player: string, type: RoomType, options: RoomOptions) => void
+    leaveRoom: (player: string) => void
+    [ev: string]: (player: string, ...args: any[]) => any
 }
 
 export interface CompetitiveServerEvents extends ServerEvents {

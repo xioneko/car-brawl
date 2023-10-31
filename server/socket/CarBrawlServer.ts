@@ -1,18 +1,18 @@
 import _ from 'lodash'
-import { Server, Socket } from 'socket.io'
+import { Server } from 'socket.io'
 import { useLogger } from '@nuxt/kit'
 import { Room } from './Room'
 import { ClientEvents, ServerEvents } from '~/models/events'
 import { RoomType } from '~/models/room'
+import { GameState } from '~/models'
 
 const logger = useLogger('CarBrawlServer')
 
 export class CarBrawlServer {
     private io: Server<ClientEvents, ServerEvents>
 
-    private rooms: Map<string, Room<any, any>> = new Map()
-
-    private roomOfClient: Map<string, string> = new Map()
+    private roomOfPlayer: Map<string, Room<GameState>> = new Map()
+    private rooms: Set<Room<GameState>> = new Set()
 
     private tickRate: number = 128
 
@@ -31,46 +31,63 @@ export class CarBrawlServer {
         this.io.on('connection', (socket) => {
             logger.info(`Client ${socket.id} Connected`)
 
-            socket.on('joinRoom', (type, options) => {
-                logger.debug(`Receive "joinRoom" event from ${socket.id}`)
+            socket.on('joinRoom', (player, type, options) => {
+                logger.debug(`Receive "joinRoom" event from ${player}`)
 
-                let room = _.find(Array.from(this.rooms.values()), (room) => {
-                    return (
-                        room.type === type &&
-                        _.filter(Array.from(this.roomOfClient.values()), {
-                            roomId: room.roomId,
-                        }).length < room.maxPlayers
+                let room = this.roomOfPlayer.get(player)
+                const rejoin = !_.isNil(room)
+                if (!rejoin) {
+                    const existRoom = _.find(
+                        Array.from(this.roomOfPlayer.values()),
+                        (room) => {
+                            return (
+                                room.type === type &&
+                                this.numOfPlayersIn(room.roomId) <
+                                    room.maxPlayers
+                            )
+                        },
                     )
-                })
-                if (!room) {
-                    const RoomCtor = roomRegistry[type]!
-                    room = new RoomCtor(this.io)
-                    this.rooms.set(room.roomId, room)
-                } else {
-                    logger.debug(`Find existing room ${room.roomId}`)
+                    if (existRoom) {
+                        room = existRoom
+                        logger.debug(`Find existing room ${existRoom.roomId}`)
+                    } else {
+                        const RoomCtor = roomRegistry[type]!
+                        room = new RoomCtor(this.io)
+                    }
+                    this.roomOfPlayer.set(player, room)
+                    this.rooms.add(room)
                 }
-
-                this.joinRoom(socket, room)
-                room.onJoin(socket.id, options)
+                socket.join(room!.roomId)
+                logger.info(
+                    `${player} ${rejoin ? 'rejoin' : 'join'} the room ${
+                        room!.roomId
+                    }}`,
+                )
+                room!.onJoin(player, options, rejoin)
             })
 
-            socket.on('leaveRoom', () => {
-                const room = this.findRoom(socket)!
-                room.onLeave(socket.id)
-                this.leaveRoom(socket, room)
+            socket.on('leaveRoom', (player) => {
+                const room = this.roomOfPlayer.get(player)!
+                room.onLeave(player)
+                socket.leave(room.roomId)
+                this.roomOfPlayer.delete(player)
+                if (!this.numOfPlayersIn(room.roomId)) {
+                    this.rooms.delete(room)
+                    room.onDispose()
+                }
             })
 
-            socket.on('carCtrl', (ctrl) => {
-                const room = this.findRoom(socket)!
-                room.onCarCtrl(socket.id, ctrl)
+            socket.on('carCtrl', (player, ctrl) => {
+                const room = this.roomOfPlayer.get(player)!
+                room.onCarCtrl(player, ctrl)
             })
 
-            socket.onAny((eventName, ...args) => {
+            socket.onAny((eventName, player, ...args) => {
                 if (['joinRoom', 'leaveRoom', 'carCtrl'].includes(eventName))
                     return
-                logger.debug(`Receive "${eventName}" event from ${socket.id}`)
-                const room = this.findRoom(socket)!
-                room._handle(eventName, args)
+                logger.debug(`Receive "${eventName}" event from ${player}`)
+                const room = this.roomOfPlayer.get(player)!
+                room._handle(eventName, player, args)
             })
 
             socket.on('disconnect', (reason) => {
@@ -81,32 +98,14 @@ export class CarBrawlServer {
         this.startSyncProgress()
     }
 
-    joinRoom(client: Socket, room: Room<any, any>) {
-        client.join(room.roomId)
-        this.roomOfClient.set(client.id, room.roomId)
+    private numOfPlayersIn(roomId: string) {
+        return _.filter(Array.from(this.roomOfPlayer.values()), { roomId })
+            .length
     }
 
-    leaveRoom(client: Socket, room: Room<any, any>) {
-        client.leave(room.roomId)
-        this.roomOfClient.delete(client.id)
-        if (!_.find(Array.from(this.roomOfClient), { roomId: room.roomId })) {
-            room.onDispose()
-            this.rooms.delete(room.roomId)
-        }
-    }
-
-    findRoom(client: Socket) {
-        const roomId = this.roomOfClient.get(client.id)!
-        return this.rooms.get(roomId)
-    }
-
-    setTickRate(perSecond: number) {
-        this.tickRate = perSecond
-    }
-
-    startSyncProgress() {
+    private startSyncProgress() {
         setInterval(() => {
-            if (_.isEmpty(this.rooms)) return
+            if (_.isEmpty(this.roomOfPlayer)) return
 
             for (const room of this.rooms.values()) {
                 room.nextTick()

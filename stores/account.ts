@@ -13,13 +13,13 @@ export const useAccountStore = defineStore({
     state: (): AccountState => ({
         guestId: Math.random().toString(36).slice(-8),
     }),
-    actions: {
-        getPlayerId(): string {
+    getters: {
+        playerId: (state) => {
             switch (true) {
-                case isRevAccount(this):
-                    return this.revAddr
-                case isGuestAccount(this):
-                    return this.guestId
+                case isRevAccount(state):
+                    return state.revAddr
+                case isGuestAccount(state):
+                    return state.guestId
                 default:
                     throw new Error('Unknown account type')
             }

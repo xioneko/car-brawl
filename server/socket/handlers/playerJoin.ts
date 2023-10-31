@@ -7,15 +7,14 @@ const logger = useLogger('Player Join')
 if (process.dev) logger.level = 4
 
 export function handlePlayerJoin(
-    clientId: string,
+    player: string,
     options: RoomOptions,
     userData: Map<string, RoomUserData>,
     state: GameState,
 ) {
-    const player = options.playerId
     const config = options.userConfig
 
-    userData.set(clientId, {
+    userData.set(player, {
         player,
         userConfig: config,
     })

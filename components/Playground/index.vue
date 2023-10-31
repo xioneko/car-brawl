@@ -68,7 +68,7 @@ const styles = {
     sceneTranslate: computed(() => {
         if (!props.gameState) return
 
-        const player = account.getPlayerId()
+        const player = account.playerId
         localCar.value = props.gameState.cars.get(player)!
 
         const sceneX = window.innerWidth / 2 - localCar.value.position.x

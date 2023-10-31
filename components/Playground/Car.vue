@@ -1,13 +1,18 @@
 <template>
     <div
         class="car absolute"
+        :class="{
+            death: state.status === CarStatus.DEATH,
+        }"
         :style="{
             transform: styles.translate.value,
         }"
     >
         <div
             class="car-body absolute -left-[4px] -top-[8px] h-[16px] w-[8px] rounded-sm"
-            :class="{ shot: state.status === CarStatus.SHOT }"
+            :class="{
+                invincible: state.status === CarStatus.INVINCIBLE,
+            }"
             :style="{
                 backgroundColor: state.style.body,
                 transform: styles.rotate.value,
@@ -75,7 +80,11 @@ onUnmounted(() => {
 </script>
 
 <style lang="less" scoped>
-.shot {
+.invincible {
     @apply opacity-50;
+}
+
+.death {
+    @apply hidden;
 }
 </style>

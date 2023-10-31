@@ -1,4 +1,4 @@
-import type { RevAccount, GuestAccount } from './account'
+import { type RevAccount, type GuestAccount, isRevAccount } from './account'
 import type { UserConfig } from './config'
 
 export enum RoomType {
@@ -8,31 +8,26 @@ export enum RoomType {
 }
 
 export interface RoomOptions {
-    playerId: string
     userConfig: UserConfig
 }
 
 export class GuestOptions implements RoomOptions {
-    playerId: string
     account: GuestAccount
     userConfig: UserConfig
     constructor(account: GuestAccount, config: UserConfig) {
-        this.playerId = account.guestId
         this.account = account
         this.userConfig = config
     }
 }
 
 export class RegularOptions implements RoomOptions {
-    playerId: string
     account: RevAccount
-    accessToken: string
     userConfig: UserConfig
-    constructor(account: RevAccount, accessToken: string, config: UserConfig) {
-        this.playerId = account.revAddr
+    accessToken?: string
+    constructor(account: RevAccount, config: UserConfig, accessToken?: string) {
         this.account = account
-        this.accessToken = accessToken
         this.userConfig = config
+        this.accessToken = accessToken
     }
 }
 
@@ -43,4 +38,16 @@ export interface RoomUserData {
 
 export interface PendingProgress {
     playersToWait: number
+}
+
+export function createRoomOptions(
+    account: RevAccount | GuestAccount,
+    userConf: UserConfig,
+    accessToken?: string,
+) {
+    if (isRevAccount(account)) {
+        return new RegularOptions(account, userConf, accessToken)
+    } else {
+        return new GuestOptions(account, userConf)
+    }
 }

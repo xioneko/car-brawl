@@ -53,9 +53,9 @@ export abstract class Room<
         this.maxPlayers = maxPlayers
     }
 
-    _handle(event: keyof Listens, ...args: any[]): void {
+    _handle(event: keyof Listens, player: string, ...args: any[]): void {
         const handler = this.messageHandlers.get(event)
-        if (handler) handler(args)
+        if (handler) handler(player, ...args)
     }
 
     requestSync() {
@@ -82,11 +82,11 @@ export abstract class Room<
         return [true]
     }
 
-    abstract onJoin(clientId: string, options: RoomOptions): void
+    abstract onJoin(player: string, options: RoomOptions, rejoin: boolean): void
 
     abstract onLeave(clientId: string): void
 
-    abstract onCarCtrl(clientId: string, ctrl: CarCtrl): void
+    abstract onCarCtrl(player: string, ctrl: CarCtrl): void
 
     abstract onDispose(): void
 

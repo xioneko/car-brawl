@@ -35,17 +35,17 @@ export class CompetitiveRoom extends Room<
             server,
             RoomType.CompetitiveRoom,
             new CompetitiveGameState(CompetitiveRoom.duration),
-            process.dev ? 2 : 4,
+            process.dev ? 3 : 4,
         )
 
         logger.info(`Room ${this.roomId} Created`)
     }
 
-    onCarCtrl(clientId: string, ctrl: CarCtrl): void {
+    onCarCtrl(player: string, ctrl: CarCtrl): void {
         if (this.gameStatus === 'running') {
             handlePlayerCtrl(
                 ctrl,
-                this.userData.get(clientId)!,
+                this.userData.get(player)!,
                 this.state,
                 this.requestSync.bind(this),
             )
@@ -72,15 +72,23 @@ export class CompetitiveRoom extends Room<
         return [true]
     }
 
-    onJoin(clientId: string, options: RoomOptions) {
-        logger.info(`${clientId} join the room ${this.roomId}}`)
-        handlePlayerJoin(clientId, options, this.userData, this.state)
+    onJoin(player: string, options: RoomOptions, rejoin: boolean) {
+        if (rejoin) {
+            if (this.gameStatus === 'waiting') {
+                this.send('progressUpdate', this.roomId, {
+                    playersToWait: this.maxPlayers - this.userData.size,
+                })
+            }
+            return
+        }
+
+        handlePlayerJoin(player, options, this.userData, this.state)
 
         const joinedCnt = this.userData.size
         if (joinedCnt === this.maxPlayers) {
             this.send('startGame', this.roomId)
             this.gameStatus = 'running'
-            this.endTime = Date.now() + ms('8 minutes')
+            this.endTime = Date.now() + ms(CompetitiveRoom.duration)
             this.requestSync()
         } else {
             this.send('progressUpdate', this.roomId, {

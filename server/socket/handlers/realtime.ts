@@ -18,7 +18,7 @@ export function realtimeUpdate(
     onStateChange?: () => void,
 ) {
     const { cars, bullets } = state
-    for (const { player } of userData.values()) {
+    for (const player of userData.keys()) {
         const self = cars.get(player)!
         const old = _.cloneDeep(self)
 
@@ -55,27 +55,25 @@ export function realtimeUpdate(
         self.velocity.y = round(self.velocity.y * Constant.Drag, 2)
 
         /* ------------------------------- Shot & Hit ------------------------------- */
-        const rebirth = (car: Car) => {
+        const reborn = (car: Car) => {
             car.position = new Vec2(
                 _.random(0, Constant.MapWidth),
                 _.random(0, Constant.MapHeight),
             )
             car.velocity = new Vec2(0, 0)
         }
-        const killer = checkIfShot(self, bullets)
-        if (killer) {
-            self.status = CarStatus.SHOT
-            self.lastBeShotAt = Date.now()
-            cars.get(killer)!.points++
-            rebirth(self)
-        } else if (checkIfHit(self, cars)) {
-            self.status = CarStatus.HIT
-            rebirth(self)
-        } else if (
-            Date.now() >
-            self.lastBeShotAt + Constant.InvincibleInterval
+        if (
+            self.status === CarStatus.INVINCIBLE &&
+            Date.now() > self.lastRebirthAt + Constant.InvincibleInterval
         ) {
             self.status = CarStatus.NORMAL
+        }
+        if (self.status === CarStatus.NORMAL) {
+            let killer
+            if ((killer = checkIfShot(self, bullets))) {
+                self.status = CarStatus.DEATH
+                cars.get(killer)!.points++
+            } else if (checkIfHit(self, cars)) reborn(self)
         }
 
         if (!_.isEqual(self, old)) onStateChange?.()
@@ -94,7 +92,7 @@ export function realtimeUpdate(
 }
 
 function checkIfShot(self: Car, bullets: Set<Bullet>) {
-    if (self.status === CarStatus.SHOT) return
+    if (self.status === CarStatus.INVINCIBLE) return
     for (const bullet of bullets.values()) {
         if (bullet.owner === self.player) continue
 

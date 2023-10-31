@@ -13,9 +13,8 @@ export class Vec2 {
 
 export enum CarStatus {
     NORMAL = 'normal',
-    SHOT = 'shot',
-    HANG_UP = 'hang_up',
-    HIT = 'hit',
+    INVINCIBLE = 'invincible',
+    DEATH = 'death',
 }
 
 export class Car {
@@ -27,7 +26,7 @@ export class Car {
     angleVelocity: number
     direction: number
     lastShootAt: number
-    lastBeShotAt: number
+    lastRebirthAt: number
     points: number
     status: CarStatus
     style: CarStyle
@@ -46,7 +45,7 @@ export class Car {
         this.angleVelocity = 0
         this.direction = 0
         this.lastShootAt = 0
-        this.lastBeShotAt = 0
+        this.lastRebirthAt = 0
         this.points = 0
         this.status = CarStatus.NORMAL
         this.style = style

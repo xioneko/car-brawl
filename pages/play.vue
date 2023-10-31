@@ -1,7 +1,7 @@
 <template>
     <div>
         <div v-if="status === GameStatus.Setup">
-            <!-- <Setup @on-finish="status = GameStatus.Pending" /> -->
+            <Setup @on-finish="startup" />
         </div>
         <div v-else-if="status === GameStatus.Pending">
             <Pending @on-finish="status = GameStatus.Playing" />
@@ -21,7 +21,6 @@
 import _ from 'lodash'
 import { Socket } from 'socket.io-client'
 import { consola } from 'consola'
-import { mockRoomOptions } from '~/test/mock'
 import {
     GameState,
     type CompetitiveServerEvents,
@@ -30,7 +29,10 @@ import {
     socketKey,
     isCompetitiveGameState,
     CompetitiveGameState,
+    UserConfig,
+    createRoomOptions,
 } from '~/models'
+import { mockRoomOptions } from '~/test/mock'
 
 const logger = consola.withTag('Game')
 logger.level = process.dev ? 4 : 3
@@ -41,21 +43,22 @@ enum GameStatus {
     Playing,
     Ended,
 }
-const status = ref<GameStatus>(
-    process.dev ? GameStatus.Pending : GameStatus.Setup,
-)
-const socket = useSocket()
+const status = ref<GameStatus>(GameStatus.Setup)
 const gameState = ref<GameState>()
+const socket = useSocket()
+const ctrl = useCtrlSample()
+const account = useAccountStore()
+
+logger.debug(`account: `, account.playerId)
 
 let sendCtrl: NodeJS.Timeout | undefined
-const ctrl = useCtrlSample()
 watch(
     status,
     (curr) => {
         if (curr === GameStatus.Playing) {
             sendCtrl = setInterval(() => {
                 // logger.debug('Send ctrl to server:\n', ctrl)
-                socket.volatile.emit('carCtrl', ctrl)
+                socket.volatile.emit('carCtrl', account.playerId, ctrl)
             }, 1000 / 128)
         } else {
             clearInterval(sendCtrl)
@@ -64,34 +67,46 @@ watch(
     { immediate: true },
 )
 
-socket.on('stateSync', (state) => {
-    gameState.value = isCompetitiveGameState(state)
-        ? CompetitiveGameState.fromJSON(state)
-        : GameState.fromJSON(state)
-    // logger.debug('Receive state from Server:\n', gameState.value)
-})
-;(socket as Socket<CompetitiveServerEvents, ClientEvents>).on('endGame', () => {
-    status.value = GameStatus.Ended
-})
-
-onMounted(() => {
-    if (process.dev) {
-        socket.emit(
-            'joinRoom',
-            RoomType.CompetitiveRoom,
-            mockRoomOptions('Test Player', 'guest'),
-        )
-    }
-})
-
 onUnmounted(() => {
     clearInterval(sendCtrl)
     socket.off('stateSync')
-    if (process.dev) {
-        socket.emit('leaveRoom')
-    }
 })
 
 provide(socketKey, socket)
+
+function startup(
+    gameMode: RoomType,
+    userConf: UserConfig,
+    accessToken?: string,
+) {
+    socket.on('stateSync', (state) => {
+        gameState.value = isCompetitiveGameState(state)
+            ? CompetitiveGameState.fromJSON(state)
+            : GameState.fromJSON(state)
+        // logger.debug('Receive state from Server:\n', gameState.value)
+    })
+    if (gameMode === RoomType.CompetitiveRoom) {
+        type CompetitiveSocket = Socket<CompetitiveServerEvents, ClientEvents>
+        socket.emit(
+            'joinRoom',
+            account.playerId,
+            RoomType.CompetitiveRoom,
+            // TODO: new RegularOptions(account as RevAccount, userConf, accessToken),
+            mockRoomOptions('mock player', 'guest'),
+        )
+        status.value = GameStatus.Pending
+        ;(socket as CompetitiveSocket).on('endGame', () => {
+            status.value = GameStatus.Ended
+        })
+    } else {
+        socket.emit(
+            'joinRoom',
+            account.playerId,
+            gameMode,
+            createRoomOptions(account, userConf),
+        )
+        status.value = GameStatus.Playing
+    }
+}
 </script>
 <style lang="less"></style>
