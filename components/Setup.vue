@@ -3,24 +3,56 @@
         <div v-if="progress === SetupProgress.ChooseFlavor">
             <!-- TODO -->
         </div>
-        <div v-else-if="progress === SetupProgress.Startup">
-            <select id="guestID" ref="select" name="guestId">
-                <option value="test_11111" selected>mock_11111</option>
-                <option value="test_22222">mock_22222</option>
-                <option value="test_33333">mock_33333</option>
-                <option value="test_44444">mock_44444</option>
-                <option value="test_55555">mock_55555</option>
+        <div
+            v-else-if="progress === SetupProgress.Startup"
+            class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-9"
+        >
+            <select id="guest-id" v-model="guestId" name="guestId">
+                <option disabled selected value="">Mock a guest ID</option>
+                <option v-for="n in 5" :key="n">
+                    {{ `text_${_.repeat(n.toString(), 5)}` }}
+                </option>
             </select>
-            <button @click="joinGame(RoomType.SingleRoom)">Single</button>
-            <button @click="joinGame(RoomType.FunRoom)">Fun</button>
-            <button @click="joinGame(RoomType.CompetitiveRoom)">
-                Competitive
-            </button>
+            <div>
+                <label for="name" class="pr-2">Name</label>
+                <input
+                    id="name"
+                    v-model="name"
+                    type="text"
+                    placeholder="Anonymous"
+                />
+            </div>
+            <div class="mode flex flex-row gap-4">
+                <div
+                    v-for="(label, roomType) in {
+                        [RoomType.SingleRoom]: 'Single',
+                        [RoomType.FunRoom]: 'Fun',
+                        [RoomType.CompetitiveRoom]: 'Competitive',
+                    }"
+                    :key="roomType"
+                >
+                    <input
+                        :id="roomType"
+                        v-model="mode"
+                        type="radio"
+                        class="peer hidden"
+                        :checked="roomType === RoomType.SingleRoom"
+                        :value="roomType"
+                    />
+                    <label
+                        :for="roomType"
+                        class="cursor-pointer peer-checked:text-orange-400"
+                        >{{ label }}</label
+                    >
+                </div>
+            </div>
+            <button class="inline-block" @click="joinGame">Let's Go</button>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
+import _ from 'lodash'
 import { RoomType, type UserConfig } from '~/models'
 
 enum SetupProgress {
@@ -30,22 +62,29 @@ enum SetupProgress {
 const progress = ref<SetupProgress>(SetupProgress.Startup)
 const userConf = useUserConfigStore()
 const account = useAccountStore()
-const select = ref<HTMLSelectElement | null>()
+const guestId = ref<string>('')
+const name = ref<string>()
+const mode = ref<RoomType>(RoomType.SingleRoom)
 
 const emit = defineEmits<{
     onFinish: [gameMode: RoomType, userConfig: UserConfig, accessToken?: string]
 }>()
 
-function joinGame(gameMode: RoomType) {
-    account.$patch({ guestId: select.value?.value ?? 'unknown' })
-    if (gameMode === RoomType.CompetitiveRoom) {
+function joinGame() {
+    if (guestId.value) account.$patch({ guestId: guestId.value })
+    if (name.value) userConf.$patch({ name: name.value })
+    if (mode.value === RoomType.CompetitiveRoom) {
         // TODO: deploy 获取 token
         const accessToken = 'TODO'
-        emit('onFinish', gameMode, userConf, accessToken)
+        emit('onFinish', mode.value, userConf, accessToken)
     } else {
-        emit('onFinish', gameMode, userConf)
+        emit('onFinish', mode.value, userConf)
     }
 }
 </script>
 
-<style lang="less"></style>
+<style scoped>
+* {
+    user-select: none;
+}
+</style>
