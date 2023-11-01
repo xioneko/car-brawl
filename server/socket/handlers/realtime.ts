@@ -109,7 +109,7 @@ function checkIfShot(self: Car, bullets: Set<Bullet>) {
 
 function checkIfHit(self: Car, cars: Map<string, Car>) {
     for (const [player, car] of cars) {
-        if (player === self.player) continue
+        if (player === self.player || car.status !== CarStatus.NORMAL) continue
 
         const distance = Math.sqrt(
             (car.position.x - self.position.x) ** 2 +

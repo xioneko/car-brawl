@@ -35,7 +35,7 @@ export class CarBrawlServer {
                 logger.debug(`Receive "joinRoom" event from ${player}`)
 
                 let room = this.roomOfPlayer.get(player)
-                const rejoin = !_.isNil(room)
+                const rejoin = !_.isNil(room) && room.type === type
                 if (!rejoin) {
                     const existRoom = _.find(
                         Array.from(this.roomOfPlayer.values()),
