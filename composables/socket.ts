@@ -3,8 +3,7 @@ import _ from 'lodash'
 import { io, Socket } from 'socket.io-client'
 import type { ServerEvents, ClientEvents } from '~/models/events'
 
-const logger = consola.withTag('Socket')
-logger.level = process.dev ? 4 : 3
+const logger = useLogger('Socket')
 
 export const useSocket = () => {
     const rtConf = useRuntimeConfig()

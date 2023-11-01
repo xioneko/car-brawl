@@ -7,7 +7,7 @@ import {
 } from '../rchain/http'
 import { logger } from '../rchain/logger'
 import { signDeploy } from '../rchain/sign'
-import type { DeployData, PostFaucet } from '~/models/protocol'
+import type { DeployData, PostFaucet } from '~/models/http'
 
 const SystemRevAddr = process.env.BOOT_REV_ADDRESS!
 

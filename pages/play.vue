@@ -20,7 +20,6 @@
 <script lang="ts" setup>
 import _ from 'lodash'
 import { Socket } from 'socket.io-client'
-import { consola } from 'consola'
 import {
     GameState,
     type CompetitiveServerEvents,
@@ -31,11 +30,11 @@ import {
     CompetitiveGameState,
     UserConfig,
     createRoomOptions,
+    RegularOptions,
+    type RevAccount,
 } from '~/models'
-import { mockRoomOptions } from '~/test/mock'
 
-const logger = consola.withTag('Game')
-logger.level = process.dev ? 4 : 3
+const logger = useLogger('play')
 
 enum GameStatus {
     Setup,
@@ -48,8 +47,6 @@ const gameState = ref<GameState>()
 const socket = useSocket()
 const ctrl = useCtrlSample()
 const account = useAccountStore()
-
-logger.debug(`account: `, account.playerId)
 
 let sendCtrl: NodeJS.Timeout | undefined
 watch(
@@ -86,15 +83,19 @@ function startup(
         // logger.debug('Receive state from Server:\n', gameState.value)
     })
     if (gameMode === RoomType.CompetitiveRoom) {
-        type CompetitiveSocket = Socket<CompetitiveServerEvents, ClientEvents>
         socket.emit(
             'joinRoom',
             account.playerId,
             RoomType.CompetitiveRoom,
-            // TODO: new RegularOptions(account as RevAccount, userConf, accessToken),
-            mockRoomOptions('mock player', 'guest'),
+            new RegularOptions(
+                account.value as RevAccount,
+                userConf,
+                accessToken,
+            ),
         )
         status.value = GameStatus.Pending
+
+        type CompetitiveSocket = Socket<CompetitiveServerEvents, ClientEvents>
         ;(socket as CompetitiveSocket).on('endGame', () => {
             status.value = GameStatus.Ended
         })
@@ -103,7 +104,7 @@ function startup(
             'joinRoom',
             account.playerId,
             gameMode,
-            createRoomOptions(account, userConf),
+            createRoomOptions(account.value, userConf),
         )
         status.value = GameStatus.Playing
     }

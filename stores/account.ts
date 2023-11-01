@@ -6,20 +6,36 @@ import {
     isGuestAccount,
 } from '~/models/account'
 
-export type AccountState = RevAccount | GuestAccount
+export type AccountState = { value: RevAccount | GuestAccount }
+export enum AccountType {
+    Registered,
+    Guest,
+}
 
 export const useAccountStore = defineStore({
     id: 'accountStore',
     state: (): AccountState => ({
-        guestId: Math.random().toString(36).slice(-8),
+        value: {
+            guestId: Math.random().toString(36).slice(-8),
+        },
     }),
     getters: {
-        playerId: (state) => {
+        type: ({ value: account }) => {
             switch (true) {
-                case isRevAccount(state):
-                    return state.revAddr
-                case isGuestAccount(state):
-                    return state.guestId
+                case isRevAccount(account):
+                    return AccountType.Registered
+                case isGuestAccount(account):
+                    return AccountType.Guest
+                default:
+                    throw new Error('Unknown account type')
+            }
+        },
+        playerId: ({ value: account }) => {
+            switch (true) {
+                case isRevAccount(account):
+                    return account.revAddr
+                case isGuestAccount(account):
+                    return account.guestId
                 default:
                     throw new Error('Unknown account type')
             }

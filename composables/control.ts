@@ -2,8 +2,7 @@ import _ from 'lodash'
 import { consola } from 'consola'
 import type { CarCtrl } from '~/models/game'
 
-const logger = consola.withTag('Control')
-logger.level = process.dev ? 4 : 3
+const logger = useLogger('Control')
 
 export const useCtrlSample = () => {
     const ctrl = reactive<CarCtrl>({

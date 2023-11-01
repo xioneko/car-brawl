@@ -7,7 +7,12 @@
             v-else-if="progress === SetupProgress.Startup"
             class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-9"
         >
-            <select id="guest-id" v-model="guestId" name="guestId">
+            <select
+                id="guest-id"
+                v-model="guestId"
+                name="guestId"
+                :disabled="account.type === AccountType.Registered"
+            >
                 <option disabled selected value="">Mock a guest ID</option>
                 <option v-for="n in 5" :key="n">
                     {{ `text_${_.repeat(n.toString(), 5)}` }}
@@ -37,11 +42,15 @@
                         type="radio"
                         class="peer hidden"
                         :checked="roomType === RoomType.SingleRoom"
+                        :disabled="
+                            roomType === RoomType.CompetitiveRoom &&
+                            account.type === AccountType.Guest
+                        "
                         :value="roomType"
                     />
                     <label
                         :for="roomType"
-                        class="cursor-pointer peer-checked:text-orange-400"
+                        class="cursor-pointer peer-checked:text-orange-400 peer-disabled:text-gray-400"
                         >{{ label }}</label
                     >
                 </div>
@@ -55,6 +64,8 @@
 import _ from 'lodash'
 import { RoomType, type UserConfig } from '~/models'
 
+const logger = useLogger('Setup')
+
 enum SetupProgress {
     ChooseFlavor,
     Startup,
@@ -66,12 +77,15 @@ const guestId = ref<string>('')
 const name = ref<string>()
 const mode = ref<RoomType>(RoomType.SingleRoom)
 
+logger.debug(account.type === AccountType.Guest ? 'guest' : 'rev')
+
 const emit = defineEmits<{
     onFinish: [gameMode: RoomType, userConfig: UserConfig, accessToken?: string]
 }>()
 
 function joinGame() {
-    if (guestId.value) account.$patch({ guestId: guestId.value })
+    if (account.type === AccountType.Guest && guestId.value)
+        account.$patch({ value: { guestId: guestId.value } })
     if (name.value) userConf.$patch({ name: name.value })
     if (mode.value === RoomType.CompetitiveRoom) {
         // TODO: deploy 获取 token

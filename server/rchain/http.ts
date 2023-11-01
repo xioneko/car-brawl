@@ -1,6 +1,6 @@
 import { rnodeAdmin, rnodeHttp } from './axios'
 import { parseRhoExpr } from './parse'
-import { DeployInfo, DeployRequest } from '~/models/protocol'
+import { DeployInfo, DeployRequest } from '~/models/http'
 
 export function sendDeploy(deployRequest: DeployRequest) {
     return rnodeHttp.post('/api/deploy', deployRequest)
