@@ -12,7 +12,7 @@
         "prepare": "husky install"
     },
     "lint-staged": {
-        "*.{.ts,.js,.vue}": "eslint --fix"
+        "*.{ts,js,vue}": "eslint --fix"
     },
     "devDependencies": {
         "@nuxt/devtools": "^1.0.0",
