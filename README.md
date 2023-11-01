@@ -147,3 +147,13 @@ docker compose up
 docker compose down
 
 ```
+
+## Contribute
+
+- Fork 代码仓库并 clone 到本地
+- 使用 Git 提交并推送你的修改
+- 向主仓库的 main 分支发起 Pull Request ([Creating a pull request from a fork](https://docs.github.com/zh/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork))
+
+> **Note**
+> - 请尽可能地减少实现一个功能所需的代码量
+> - 在一个 pull request 被成功合并后，请及时更新本地仓库代码
