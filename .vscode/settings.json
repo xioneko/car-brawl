@@ -12,6 +12,7 @@
         "rholang",
         "rnode",
         "secp256k1",
+        "toastification",
         "Unforg"
     ],
     "typescript.tsdk": "node_modules/typescript/lib",

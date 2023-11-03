@@ -23,7 +23,7 @@ export interface DeployInfo {
     readonly sigAlgorithm: 'secp256k1' | 'secp256k1:eth'
     readonly validAfterBlockNumber: number
     readonly systemDeployError?: string
-    readonly errored?: string
+    readonly errored?: boolean
 }
 
 export namespace GetLatestBlockNumber {
@@ -37,10 +37,9 @@ export namespace GetLatestBlockNumber {
 export namespace PostDeploy {
     export interface Req {
         deployRequest: DeployRequest
-        ack?: string
     }
 
-    export type Res = { data?: any }
+    export type Res = { data: any }
 }
 
 export namespace GetBalance {
@@ -53,12 +52,13 @@ export namespace GetBalance {
     }
 }
 
-export namespace PostFaucet {
+export namespace PostLogin {
     export interface Req {
         revAddr: string
     }
 
     export interface Res {
+        registered: boolean
         error?: string
     }
 }

@@ -1,6 +1,9 @@
+import { useLogger } from '@nuxt/kit'
 import { rnodeAdmin, rnodeHttp } from './axios'
 import { parseRhoExpr } from './parse'
 import { DeployInfo, DeployRequest } from '~/models/http'
+
+const logger = useLogger('Rchain API')
 
 export function sendDeploy(deployRequest: DeployRequest) {
     return rnodeHttp.post('/api/deploy', deployRequest)
@@ -30,38 +33,17 @@ export async function fetchDeployInfo(
     }
 }
 
-export async function fetchDeployInfoByPolling(
-    deployId: string,
-    maxAttempts: number,
-) {
-    let deployInfo = await fetchDeployInfo(deployId)
-    let attemptsCnt = 1
-    if (!deployInfo) {
-        deployInfo = await new Promise((resolve, reject) => {
-            const FETCH_POLLING = setInterval(async () => {
-                const d = await fetchDeployInfo(deployId)
-                ++attemptsCnt
-                if (d) {
-                    clearInterval(FETCH_POLLING)
-                    resolve(d)
-                } else if (attemptsCnt === maxAttempts) {
-                    reject(new Error('Fetch deploy info timeout.'))
-                }
-            }, 7500)
-        })
-    }
-    return deployInfo as DeployInfo
-}
-
-export async function dataAtName<T>(name: string): Promise<T> {
-    const {
-        exprs: [{ expr }],
-    } = (
+export async function dataAtName<T>(name: string, depth = 1): Promise<T> {
+    const data = (
         await rnodeHttp.post(`/api/data-at-name`, {
-            depth: 1,
+            depth,
             name: { UnforgDeploy: { data: name } },
         })
     ).data
+
+    const {
+        exprs: [{ expr }],
+    } = data
 
     return parseRhoExpr(expr) as T
 }

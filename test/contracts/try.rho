@@ -1,3 +1,6 @@
 new log(`rho:io:stdout`) in {
-  log!(30000*(20 + 6 * 1)/(20*3+3*3*3 - 3*3))
+  contract @"Test"() = {
+    log!((42, true, "Hello from blockchain!"))
+  } |
+  @"Test"!()
 }

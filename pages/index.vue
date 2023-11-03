@@ -15,18 +15,52 @@
                 <NuxtLink to="/play">Guest Mode</NuxtLink>
             </button>
         </div>
+        <dialog
+            ref="loadingSpinner"
+            class="absolute bg-transparent outline-none backdrop:bg-neutral-50/90"
+        >
+            <div class="h-32 w-32">
+                <component
+                    :is="
+                        [
+                            LoadingCubeShadow,
+                            LoadingCubeGrid,
+                            LoadingRotateSquare,
+                            LoadingLetterCube,
+                            LoadingRotateSquare2,
+                        ].at(_.random(0, 4))
+                    "
+                    class="absolute left-8 top-8"
+                />
+            </div>
+        </dialog>
     </div>
 </template>
 
 <script lang="ts" setup>
+import _ from 'lodash'
 import { useToast } from 'vue-toastification'
+import {
+    LoadingCubeShadow,
+    LoadingCubeGrid,
+    LoadingRotateSquare,
+    LoadingLetterCube,
+    LoadingRotateSquare2,
+} from '#components'
+import { type PostLogin } from '~/models'
 
 const logger = useLogger('Index')
 const toast = useToast()
 const account = useAccountStore()
+const loadingSpinner = ref<HTMLDialogElement>()
 
 onMounted(() => {
     account.$reset()
+})
+
+let unwatchLoginStatus: any
+onUnmounted(() => {
+    unwatchLoginStatus()
 })
 
 async function connectMetamask() {
@@ -41,9 +75,54 @@ async function connectMetamask() {
         })
         const revAddr = createRevAddrFromEth(ethAddr)
         account.$patch({ value: { ethAddr, revAddr } })
-        navigateTo('/play')
+        const { status: loginStatus, data: loginResponse } =
+            useFetch<PostLogin.Res>('/api/login', {
+                method: 'POST',
+                body: { revAddr },
+            })
+        handleLoginRes(loginStatus, loginResponse)
     } else {
         toast.error('Is MetaMask extension installed?')
+    }
+
+    type AsyncDataRequestStatus = 'idle' | 'pending' | 'success' | 'error'
+
+    function handleLoginRes(
+        loginStatus: Ref<AsyncDataRequestStatus>,
+        loginResponse: Ref<PostLogin.Res | null>,
+    ) {
+        unwatchLoginStatus = watch(
+            loginStatus,
+            (status) => {
+                switch (status) {
+                    case 'idle':
+                        break
+                    case 'pending':
+                        loadingSpinner.value?.showModal()
+                        break
+                    case 'success':
+                        loadingSpinner.value?.close()
+                        if (loginResponse.value?.registered) {
+                            toast.success('Welcome back!')
+                            navigateTo('/play')
+                        } else if (loginResponse.value?.error) {
+                            toast.error('Login failed. Please try again.')
+                            logger.debug(loginResponse.value?.error)
+                        } else {
+                            toast.success(
+                                'Congratulations, you have received a reward of 888888 REV!',
+                            )
+                            navigateTo('/play')
+                        }
+                        break
+                    case 'error':
+                        loadingSpinner.value?.close()
+                        toast.error('Login failed. Please try again.')
+                        break
+                }
+            },
+            { immediate: true },
+        )
     }
 
     function createRevAddrFromEth(ethAddrRaw: string): string {
