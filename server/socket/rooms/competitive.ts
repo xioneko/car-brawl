@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import { useLogger } from '@nuxt/kit'
 import type { Server } from 'socket.io'
 import ms, { StringValue } from 'ms'
@@ -15,7 +16,9 @@ import {
     CompetitiveServerEvents,
     CarCtrl,
     RoomOptions,
+    RegularOptions,
 } from '~/models'
+import { propose, sendDeploy } from '~/server/rchain/http'
 
 const logger = useLogger(RoomType.CompetitiveRoom)
 
@@ -35,10 +38,34 @@ export class CompetitiveRoom extends Room<
             server,
             RoomType.CompetitiveRoom,
             new CompetitiveGameState(CompetitiveRoom.duration),
-            process.dev ? 3 : 4,
+            process.dev ? 2 : 4,
         )
 
         logger.info(`Room ${this.roomId} Created`)
+    }
+
+    async createGame() {
+        try {
+            const deploy = await createSysDeployReq(
+                `@"CreateGame"!("${this.roomId}")`,
+            )
+            await sendDeploy(deploy)
+            propose()
+            await checkDeployStatus(
+                deploy.signature,
+                (errored, systemDeployError) => {
+                    throw new Error(
+                        errored
+                            ? 'Deploy Execution Error'
+                            : `${systemDeployError}.`,
+                    )
+                },
+            )
+            logger.info(`Create game success in room ${this.roomId}`)
+        } catch (error) {
+            logger.error(error)
+            this.createGame() // TODO: Retry？
+        }
     }
 
     onCarCtrl(player: string, ctrl: CarCtrl): void {
@@ -66,10 +93,29 @@ export class CompetitiveRoom extends Room<
     }
 
     onAuth(
-        options: RoomOptions,
+        options: RegularOptions,
     ): [success: boolean, error?: string | undefined] {
-        // TODO: 验证 “入场券”，由 Deploy 返回
-        return [true]
+        const { accessToken } = options
+        if (accessToken) {
+            try {
+                logger.debug(
+                    'revAddr:',
+                    options.account.revAddr,
+                    'accessToken:',
+                    accessToken,
+                )
+                const content = decrypt(accessToken)
+                logger.debug(`Decrypted access token: ${content}`)
+                if (content === options.account.revAddr) {
+                    return [true]
+                } else {
+                    return [false, 'Invalid access token']
+                }
+            } catch {
+                return [false, 'Invalid access token']
+            }
+        }
+        return [false, 'Empty access token']
     }
 
     onJoin(player: string, options: RoomOptions, rejoin: boolean) {

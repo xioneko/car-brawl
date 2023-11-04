@@ -16,7 +16,7 @@
 <script lang="ts" setup>
 const props = withDefaults(
     defineProps<{
-        size: `${number}px`
+        size?: `${number}px`
     }>(),
     {
         size: '64px',

@@ -9,14 +9,10 @@ export default defineEventHandler(async (event): Promise<PostLogin.Res> => {
     const { revAddr } = await readBody<PostLogin.Req>(event)
 
     const faucetReq = await createSysDeployReq(
-        `new deployId(\`rho:rchain:deployId\`), result in {
-            @"Faucet"!("${SystemRevAddr}", "${revAddr}", *result) |
-            for (@r <- result) {
-                deployId!(r)
-            }
+        `new deployId(\`rho:rchain:deployId\`), deployer(\`rho:rchain:deployerId\`) in {
+            @"Faucet"!(*deployer, "${SystemRevAddr}", "${revAddr}", *deployId)
         }`,
     )
-    // logger.debug('Faucet deploy request:', faucetReq)
     const {
         data: [success, msg],
     } = await $fetch<PostDeploy.Res>('/api/deploy', {
@@ -25,7 +21,7 @@ export default defineEventHandler(async (event): Promise<PostLogin.Res> => {
             deployRequest: faucetReq,
         },
     })
-    logger.debug('Faucet deploy result:', success, msg)
+    // logger.debug('Faucet deploy result:', success, msg)
 
     const registered = (msg as string).includes('registered')
     return {

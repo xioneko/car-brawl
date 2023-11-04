@@ -20,6 +20,7 @@
 <script lang="ts" setup>
 import _ from 'lodash'
 import { Socket } from 'socket.io-client'
+import { useToast } from 'vue-toastification'
 import {
     GameState,
     type CompetitiveServerEvents,
@@ -47,6 +48,7 @@ const gameState = ref<GameState>()
 const socket = useSocket()
 const ctrl = useCtrlSample()
 const account = useAccountStore()
+const toast = useToast()
 
 let sendCtrl: NodeJS.Timeout | undefined
 watch(
@@ -76,11 +78,21 @@ function startup(
     userConf: UserConfig,
     accessToken?: string,
 ) {
-    socket.on('stateSync', (state) => {
-        gameState.value = isCompetitiveGameState(state)
-            ? CompetitiveGameState.fromJSON(state)
-            : GameState.fromJSON(state)
-        // logger.debug('Receive state from Server:\n', gameState.value)
+    socket.on('joinStatus', (success, error) => {
+        if (success) {
+            socket.on('stateSync', (state) => {
+                gameState.value = isCompetitiveGameState(state)
+                    ? CompetitiveGameState.fromJSON(state)
+                    : GameState.fromJSON(state)
+                // logger.debug('Receive state from Server:\n', gameState.value)
+            })
+            status.value =
+                gameMode === RoomType.CompetitiveRoom
+                    ? GameStatus.Pending
+                    : GameStatus.Playing
+        } else {
+            toast.error(error ?? 'Join game failed, please try again later.')
+        }
     })
     if (gameMode === RoomType.CompetitiveRoom) {
         socket.emit(
@@ -93,8 +105,6 @@ function startup(
                 accessToken,
             ),
         )
-        status.value = GameStatus.Pending
-
         type CompetitiveSocket = Socket<CompetitiveServerEvents, ClientEvents>
         ;(socket as CompetitiveSocket).on('endGame', () => {
             status.value = GameStatus.Ended
@@ -106,8 +116,6 @@ function startup(
             gameMode,
             createRoomOptions(account.value, userConf),
         )
-        status.value = GameStatus.Playing
     }
 }
 </script>
-<style lang="less"></style>

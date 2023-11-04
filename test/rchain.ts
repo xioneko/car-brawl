@@ -1,6 +1,6 @@
 import { sendDeploy, propose, dataAtName } from '~/server/rchain/http'
 
-const logger = useLogger('Rchain API Test')
+const logger = useLogger('Test Rchain API')
 
 ;(async function testAnyDeploy() {
     try {

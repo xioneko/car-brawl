@@ -1,3 +1,5 @@
+import type { RevAccount } from './account'
+
 export interface DeployData {
     readonly term: string
     readonly timestamp: number
@@ -59,6 +61,19 @@ export namespace PostLogin {
 
     export interface Res {
         registered: boolean
+        error?: string
+    }
+}
+
+export namespace PostBuyTicket {
+    export interface Req {
+        account: RevAccount
+        deploy: DeployData
+        signature: string
+    }
+
+    export type Res = {
+        accessToken?: string
         error?: string
     }
 }

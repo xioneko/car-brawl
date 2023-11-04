@@ -1,49 +1,41 @@
-import { useLogger } from '@nuxt/kit'
+import _ from 'lodash'
 import { BinaryWriter } from 'google-protobuf'
-import { fetchDeployInfo } from '../rchain/http'
-import { signDeploy } from '../rchain/sign'
-import { rnodeHttp } from '../rchain/axios'
-import { DeployData, DeployInfo, DeployRequest } from '~/models'
+import type { DeployData, GetLatestBlockNumber } from '~/models/http'
+import type { RevAccount } from '~/models/account'
 
-const logger = useLogger('Rchain API')
+export async function createDeploy(account: RevAccount, code: string) {
+    const { blockNum } = await $fetch<GetLatestBlockNumber.Res>(
+        '/api/latestBlockNumber',
+    )
 
-export async function createSysDeployReq(code: string): Promise<DeployRequest> {
-    const [{ seqNum: blockNum }] = (await rnodeHttp.get('/api/blocks/1')).data
     const deployData: DeployData = {
         term: code,
-        phloPrice: 1,
-        phloLimit: 1000000,
         timestamp: Date.now(),
+        phloPrice: 1,
+        phloLimit: 200000, // TODO 根据实际情况选择更合适的值
         validAfterBlockNumber: blockNum,
     }
-    return signDeploy(deployData)
+    if (!('ethAddr' in account)) throw new Error('Assertion Failed')
+    const signature = await signMetamask(deployData, account.ethAddr)
+
+    return { deploy: deployData, signature }
 }
 
-export async function checkDeployStatus(
-    deployId: string,
-    onError: (errored?: boolean, systemDeployError?: string) => void,
-) {
-    let deployInfo = await fetchDeployInfo(deployId)
-    let attemptsCnt = 1
-    if (!deployInfo) {
-        deployInfo = await new Promise((resolve, reject) => {
-            const FETCH_POLLING = setInterval(async () => {
-                const d = await fetchDeployInfo(deployId)
-                ++attemptsCnt
-                if (d) {
-                    clearInterval(FETCH_POLLING)
-                    resolve(d)
-                } else if (attemptsCnt === 8) {
-                    reject(new Error('Fetch deploy info timeout.'))
-                }
-            }, 7500)
-        })
-    }
-    const { errored, systemDeployError } = deployInfo as DeployInfo
-    if (errored || systemDeployError) onError(errored, systemDeployError)
+async function signMetamask(
+    deployData: DeployData,
+    ethAddr: string,
+): Promise<string> {
+    const data = deployDataProtobufSerialize(deployData)
+    // @ts-ignore
+    const sigHex = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [bytesToHex(data), ethAddr],
+    })
+
+    return sigHex
 }
 
-export function deployDataProtobufSerialize(deployData: DeployData) {
+function deployDataProtobufSerialize(deployData: DeployData) {
     const { term, timestamp, phloPrice, phloLimit, validAfterBlockNumber } =
         deployData
 
@@ -74,4 +66,16 @@ export function deployDataProtobufSerialize(deployData: DeployData) {
     writeInt64(10, validAfterBlockNumber)
 
     return writer.getResultBuffer()
+}
+
+const hexByByte = Array.from({ length: 256 }, (v, i) =>
+    i.toString(16).padStart(2, '0'),
+)
+function bytesToHex(bytes: Uint8Array): string {
+    let hex = '0x'
+    if (bytes === undefined || bytes.length === 0) return hex
+    for (const byte of bytes) {
+        hex += hexByByte[byte]
+    }
+    return hex
 }

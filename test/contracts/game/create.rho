@@ -1,7 +1,7 @@
 new log(`rho:io:stdout`) in {
-  @"CarBrawl"!("id", {
-    "host": "fake",
+  @"CarBrawl"!({
+    "host": "mockHost",
     "cost": 100000,
-    "punish": 30000,
-  })
+  }) |
+  @"CreateGame"!("mock_id")
 }

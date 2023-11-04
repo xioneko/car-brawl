@@ -36,8 +36,8 @@
 <script lang="ts" setup>
 withDefaults(
     defineProps<{
-        size: `${number}px`
-        color: string
+        size?: `${number}px`
+        color?: string
     }>(),
     {
         size: '64px',

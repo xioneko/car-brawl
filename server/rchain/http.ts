@@ -5,8 +5,18 @@ import { DeployInfo, DeployRequest } from '~/models/http'
 
 const logger = useLogger('Rchain API')
 
-export function sendDeploy(deployRequest: DeployRequest) {
-    return rnodeHttp.post('/api/deploy', deployRequest)
+export const SystemRevAddr = process.env.BOOT_REV_ADDRESS!
+
+export async function sendDeploy(
+    deployRequest: DeployRequest,
+    onError?: (error: any) => void,
+) {
+    try {
+        const res = await rnodeHttp.post('/api/deploy', deployRequest)
+        return res
+    } catch (error) {
+        onError?.(error)
+    }
 }
 
 export async function propose() {
@@ -23,6 +33,7 @@ export async function fetchDeployInfo(
             if (!err.response || err.response.status !== 400) {
                 throw err
             }
+            return {}
         })
 
     if (blockHash) {

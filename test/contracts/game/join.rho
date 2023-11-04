@@ -1,8 +1,0 @@
-new log(`rho:io:stdout`) in {
-    @["id", "join"]!("player1", *log) |
-    @["id", "join"]!("player2", *log) |
-    @["id", "join"]!("player3", *log) |
-    @["id", "join"]!("player4", *log) |
-    @["id", "join"]!("player5", *log) |
-    @["id", "join"]!("player6", *log)
-}

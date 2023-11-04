@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { Server } from 'socket.io'
 import { useLogger } from '@nuxt/kit'
+import { SystemRevAddr, propose, sendDeploy } from '../rchain/http'
 import { Room } from './Room'
 import { ClientEvents, ServerEvents } from '~/models/events'
 import { RoomType } from '~/models/room'
@@ -22,6 +23,8 @@ export class CarBrawlServer {
             [type in RoomType]: new (server: Server) => Room<any, any>
         },
     ) {
+        this.hostGame()
+
         this.io = new Server(port, {
             cors: {
                 origin: `http://localhost:${process.env.PORT}`,
@@ -57,13 +60,20 @@ export class CarBrawlServer {
                     this.roomOfPlayer.set(player, room)
                     this.rooms.add(room)
                 }
+                const [success, error] = room!.onAuth(options)
+                if (success) {
+                    socket.emit('joinStatus', true)
+                } else {
+                    socket.emit('joinStatus', false, error)
+                    return
+                }
                 socket.join(room!.roomId)
+                room!.onJoin(player, options, rejoin)
                 logger.info(
                     `${player} ${rejoin ? 'rejoin' : 'join'} the room ${
                         room!.roomId
                     }}`,
                 )
-                room!.onJoin(player, options, rejoin)
             })
 
             socket.on('leaveRoom', (player) => {
@@ -96,6 +106,29 @@ export class CarBrawlServer {
         })
 
         this.startSyncProgress()
+    }
+
+    private async hostGame() {
+        try {
+            const deploy = await createSysDeployReq(
+                `@"CarBrawl"!({"host": "${SystemRevAddr}", "cost": ${
+                    process.dev ? 100 : 100_000
+                }})`,
+            )
+            await sendDeploy(deploy)
+            await checkDeployStatus(
+                deploy.signature,
+                (errored, systemDeployError) => {
+                    if (errored) {
+                        throw new Error('Deploy execution error')
+                    } else if (systemDeployError) {
+                        throw new Error(`${systemDeployError}.`)
+                    }
+                },
+            )
+        } catch (error) {
+            logger.error('Host game deploy failed:', error)
+        }
     }
 
     private numOfPlayersIn(roomId: string) {

@@ -114,7 +114,7 @@
 
 ```bash
 # 启用 pnpm
-corepack enable pnpm
+corepack enable pnpm # 需要管理员身份权限
 
 # 安装依赖
 pnpm install

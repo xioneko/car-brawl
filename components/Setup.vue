@@ -38,7 +38,7 @@
                 >
                     <input
                         :id="roomType"
-                        v-model="mode"
+                        v-model="gameMode"
                         type="radio"
                         class="peer hidden"
                         :checked="roomType === RoomType.SingleRoom"
@@ -57,48 +57,86 @@
             </div>
             <button class="inline-block" @click="joinGame">Let's Go</button>
         </div>
+        <LoadingSpinner :status="joinStatus" />
     </div>
 </template>
 
 <script lang="ts" setup>
 import _ from 'lodash'
-import { RoomType, type UserConfig } from '~/models'
-
-const logger = useLogger('Setup')
+import { useToast } from 'vue-toastification'
+import type { AsyncDataRequestStatus } from 'nuxt/dist/app/composables/asyncData'
+import {
+    RoomType,
+    type RevAccount,
+    type UserConfig,
+    type PostBuyTicket,
+} from '~/models'
 
 enum SetupProgress {
     ChooseFlavor,
     Startup,
 }
 const progress = ref<SetupProgress>(SetupProgress.Startup)
-const userConf = useUserConfigStore()
-const account = useAccountStore()
 const guestId = ref<string>('')
 const name = ref<string>()
-const mode = ref<RoomType>(RoomType.SingleRoom)
-
-logger.debug(account.type === AccountType.Guest ? 'guest' : 'rev')
+const gameMode = ref<RoomType>(RoomType.SingleRoom)
+const joinStatus = ref<AsyncDataRequestStatus>('idle')
+const logger = useLogger('Setup')
+const userConf = useUserConfigStore()
+const account = useAccountStore()
+const toast = useToast()
 
 const emit = defineEmits<{
     onFinish: [gameMode: RoomType, userConfig: UserConfig, accessToken?: string]
 }>()
 
-function joinGame() {
+async function joinGame() {
     if (account.type === AccountType.Guest && guestId.value)
         account.$patch({ value: { guestId: guestId.value } })
     if (name.value) userConf.$patch({ name: name.value })
-    if (mode.value === RoomType.CompetitiveRoom) {
-        // TODO: deploy 获取 token
-        const accessToken = 'TODO'
-        emit('onFinish', mode.value, userConf, accessToken)
-    } else {
-        emit('onFinish', mode.value, userConf)
+
+    switch (gameMode.value) {
+        case RoomType.SingleRoom:
+        case RoomType.FunRoom:
+            emit('onFinish', gameMode.value, userConf)
+            break
+        case RoomType.CompetitiveRoom: {
+            try {
+                joinStatus.value = 'pending'
+
+                const revAccount = account.value as RevAccount
+                const { deploy, signature } = await createDeploy(
+                    revAccount,
+                    `new deployId(\`rho:rchain:deployId\`), deployer(\`rho:rchain:deployerId\`) in {
+                            @"BuyTicket"!(*deployer, "${revAccount.revAddr}", *deployId)
+                        }`,
+                )
+                const { accessToken, error } = await $fetch<PostBuyTicket.Res>(
+                    '/api/buyTicket',
+                    {
+                        method: 'POST',
+                        body: {
+                            deploy,
+                            signature,
+                            account: revAccount,
+                        } as PostBuyTicket.Req,
+                    },
+                )
+
+                if (accessToken) {
+                    joinStatus.value = 'success'
+                    emit('onFinish', gameMode.value, userConf, accessToken)
+                } else {
+                    joinStatus.value = 'error'
+                    toast.error(`Failed to buy ticket: ${error}`)
+                }
+                break
+            } catch (err) {
+                joinStatus.value = 'error'
+                logger.error(err)
+                toast.error('Failed to buy ticket. Please try again later.')
+            }
+        }
     }
 }
 </script>
-
-<style scoped>
-* {
-    user-select: none;
-}
-</style>

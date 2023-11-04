@@ -12,8 +12,8 @@
 <script lang="ts" setup>
 withDefaults(
     defineProps<{
-        size: `${number}px`
-        background: string
+        size?: `${number}px`
+        background?: string
     }>(),
     {
         size: '64px',

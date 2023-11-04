@@ -8,6 +8,7 @@ export type EventsMap<T> = {
 export type EventNames<T> = keyof EventsMap<T> & (string | symbol)
 
 export interface ServerEvents {
+    joinStatus: (success: boolean, error?: string) => void
     stateSync: (state: GameState) => void
 }
 
