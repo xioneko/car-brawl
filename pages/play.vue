@@ -106,7 +106,8 @@ function startup(
             ),
         )
         type CompetitiveSocket = Socket<CompetitiveServerEvents, ClientEvents>
-        ;(socket as CompetitiveSocket).on('endGame', () => {
+        ;(socket as CompetitiveSocket).on('endGame', (rewardRes) => {
+            logger.debug(rewardRes)
             status.value = GameStatus.Ended
         })
     } else {

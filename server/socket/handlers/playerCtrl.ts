@@ -32,7 +32,7 @@ export function handlePlayerCtrl(
         car.velocity = new Vec2(0, 0)
     }
     if (self.status === CarStatus.DEATH) {
-        logger.debug(`${self.name} is to be reborn`)
+        // logger.debug(`${self.name} is to be reborn`)
         reborn(self)
         self.lastRebirthAt = Date.now()
         self.status = CarStatus.INVINCIBLE

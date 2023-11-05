@@ -1,6 +1,10 @@
-new log(`rho:io:stdout`) in {
-  contract @"Test"() = {
-    log!((42, true, "Hello from blockchain!"))
+new log(`rho:io:stdout`), Ch in {
+  Ch!(1) |
+  contract @"AAAA"(return) = {
+    for (_ <- Ch) {
+      log!("Recive") |
+      return!("Receive")
+    }
   } |
-  @"Test"!()
+  @"AAAA"!(Nil)
 }

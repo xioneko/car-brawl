@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "clean:rnode": "del data/* !data/*.pem !data/genesis",
+        "rnode": "docker compose down && docker compose up",
         "build": "nuxt build",
         "dev": "cross-env CONSOLA_LEVEL=4 nuxt dev",
         "generate": "nuxt generate",

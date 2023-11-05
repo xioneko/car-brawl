@@ -7,14 +7,18 @@ import { DeployData, DeployInfo, DeployRequest } from '~/models'
 
 const logger = useLogger('Rchain API')
 
-export async function createSysDeployReq(code: string): Promise<DeployRequest> {
-    const [{ seqNum: blockNum }] = (await rnodeHttp.get('/api/blocks/1')).data
+export async function createSysDeployReq(
+    code: string,
+    validAfterBlockNumber?: number,
+): Promise<DeployRequest> {
+    let seqNum = validAfterBlockNumber
+    seqNum ?? ([{ seqNum }] = (await rnodeHttp.get('/api/blocks/1')).data)
     const deployData: DeployData = {
         term: code,
         phloPrice: 1,
         phloLimit: 1000000,
         timestamp: Date.now(),
-        validAfterBlockNumber: blockNum,
+        validAfterBlockNumber: seqNum!,
     }
     return signDeploy(deployData)
 }

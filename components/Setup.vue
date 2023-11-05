@@ -126,6 +126,7 @@ async function joinGame() {
                 if (accessToken) {
                     joinStatus.value = 'success'
                     emit('onFinish', gameMode.value, userConf, accessToken)
+                    toast.success('Ticket bought successfully!')
                 } else {
                     joinStatus.value = 'error'
                     toast.error(`Failed to buy ticket: ${error}`)

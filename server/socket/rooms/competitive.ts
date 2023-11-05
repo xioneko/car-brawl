@@ -1,4 +1,4 @@
-import crypto from 'node:crypto'
+import _ from 'lodash'
 import { useLogger } from '@nuxt/kit'
 import type { Server } from 'socket.io'
 import ms, { StringValue } from 'ms'
@@ -18,7 +18,7 @@ import {
     RoomOptions,
     RegularOptions,
 } from '~/models'
-import { propose, sendDeploy } from '~/server/rchain/http'
+import { dataAtName, propose, sendDeploy } from '~/server/rchain/http'
 
 const logger = useLogger(RoomType.CompetitiveRoom)
 
@@ -40,32 +40,7 @@ export class CompetitiveRoom extends Room<
             new CompetitiveGameState(CompetitiveRoom.duration),
             process.dev ? 2 : 4,
         )
-
         logger.info(`Room ${this.roomId} Created`)
-    }
-
-    async createGame() {
-        try {
-            const deploy = await createSysDeployReq(
-                `@"CreateGame"!("${this.roomId}")`,
-            )
-            await sendDeploy(deploy)
-            propose()
-            await checkDeployStatus(
-                deploy.signature,
-                (errored, systemDeployError) => {
-                    throw new Error(
-                        errored
-                            ? 'Deploy Execution Error'
-                            : `${systemDeployError}.`,
-                    )
-                },
-            )
-            logger.info(`Create game success in room ${this.roomId}`)
-        } catch (error) {
-            logger.error(error)
-            this.createGame() // TODO: Retry？
-        }
     }
 
     onCarCtrl(player: string, ctrl: CarCtrl): void {
@@ -84,8 +59,16 @@ export class CompetitiveRoom extends Room<
             realtimeUpdate(this.userData, this.state)
             this.state.timeLeft = this.endTime - Date.now()
             if (this.state.timeLeft <= 0) {
-                this.send('endGame', this.roomId)
-                // TODO: Handle end game
+                // TODO: 处理玩家积分相同的情况
+                const pointsOfPlayer = _.fromPairs(
+                    _.map(Array.from(this.userData.keys()), (player) => [
+                        player,
+                        this.state.cars.get(player)?.points ?? 0,
+                    ]),
+                )
+                this.endGame(pointsOfPlayer, (rewardRes) => {
+                    this.send('endGame', this.roomId, rewardRes)
+                })
                 this.gameStatus = 'ended'
             }
             this.requestSync()
@@ -98,14 +81,8 @@ export class CompetitiveRoom extends Room<
         const { accessToken } = options
         if (accessToken) {
             try {
-                logger.debug(
-                    'revAddr:',
-                    options.account.revAddr,
-                    'accessToken:',
-                    accessToken,
-                )
                 const content = decrypt(accessToken)
-                logger.debug(`Decrypted access token: ${content}`)
+                // logger.debug(`Decrypted access token: ${content}`)
                 if (content === options.account.revAddr) {
                     return [true]
                 } else {
@@ -133,8 +110,11 @@ export class CompetitiveRoom extends Room<
         const joinedCnt = this.userData.size
         if (joinedCnt === this.maxPlayers) {
             this.send('startGame', this.roomId)
+            this.initGame(Array.from(this.userData.keys()))
+
             this.gameStatus = 'running'
             this.endTime = Date.now() + ms(CompetitiveRoom.duration)
+
             this.requestSync()
         } else {
             this.send('progressUpdate', this.roomId, {
@@ -154,5 +134,53 @@ export class CompetitiveRoom extends Room<
 
     onDispose() {
         logger.info(`Room ${this.roomId} Disposed`)
+    }
+
+    private async initGame(players: string[]) {
+        try {
+            const deploy = await createSysDeployReq(
+                `@"CreateGame"!("${this.roomId}") |
+                 @["${this.roomId}", "joinGame"]!(${JSON.stringify(
+                     players,
+                 )}, Nil)`,
+            )
+            await sendDeploy(deploy)
+            await propose()
+            logger.info(`Initialize game for room ${this.roomId}`)
+        } catch (error) {
+            logger.error(`Initialize game failed:`, error)
+        }
+    }
+
+    private async endGame(
+        pointsOfPlayer: Record<string, number>,
+        onFinish: (rewardOfPlayer: Record<string, number>) => void,
+    ) {
+        try {
+            const deploy = await createSysDeployReq(
+                `new result(\`rho:rchain:deployId\`), deployer(\`rho:rchain:deployerId\`) in {
+                    @["${this.roomId}", "endGame"]!(${JSON.stringify(
+                        pointsOfPlayer,
+                    )}, Nil) |
+                    @["${this.roomId}", "reward"]!(*deployer, *result)
+                }`,
+            )
+            await sendDeploy(deploy)
+            await propose()
+
+            const deployId = deploy.signature
+            await checkDeployStatus(deployId, (errored, systemDeployError) => {
+                throw new Error(
+                    `Deploy Execution Error: ${
+                        systemDeployError ?? 'check the rnode log'
+                    }.`,
+                )
+            })
+            const rewardRes = await dataAtName<[string, number][]>(deployId)
+            logger.info(`End game for room ${this.roomId}`)
+            onFinish(_.fromPairs(rewardRes))
+        } catch (error) {
+            logger.error('End game failed:', error)
+        }
     }
 }

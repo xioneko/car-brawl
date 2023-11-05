@@ -5,7 +5,7 @@ new registerCh, log(`rho:io:stdout`) in {
         log!(("[Faucet]", "registerCh: ", s)) |
         if (not s.contains(newcomer)) {
           new result in {
-            @"Transfer"!(deployer, systemAddr, newcomer, 888888, *result) |
+            @"Transfer"!(deployer, systemAddr, newcomer, 1888888, *result) |
             for (@(success, msg) <- result) {
               if (success) {
                 registerCh!(s.add(newcomer)) |

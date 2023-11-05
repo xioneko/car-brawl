@@ -101,7 +101,7 @@ function checkIfShot(self: Car, bullets: Set<Bullet>) {
                 (bullet.position.y - self.position.y) ** 2,
         )
         if (distance < Constant.SafetyRadius) {
-            logger.debug(`${self.player} shot by ${bullet.owner}`)
+            // logger.debug(`${self.player} shot by ${bullet.owner}`)
             return bullet.owner
         }
     }
@@ -116,7 +116,7 @@ function checkIfHit(self: Car, cars: Map<string, Car>) {
                 (car.position.y - self.position.y) ** 2,
         )
         if (distance < Constant.SafetyRadius * 2) {
-            logger.debug(`${car.name} hit ${self.name}`)
+            // logger.debug(`${car.name} hit ${self.name}`)
             return car.player
         }
     }

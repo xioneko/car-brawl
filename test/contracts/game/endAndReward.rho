@@ -1,8 +1,9 @@
 new log(`rho:io:stdout`) in {
-    @["mock_id", "winPoints"]!({
+  @["mock_id", "endGame"]!({
       "player1": 23,
       "player2": 18,
       "player3": 12,
       "player4": 15,
     }, *log)
+    | @["mock_id", "reward"]!("TestDeployer", *log)
 }

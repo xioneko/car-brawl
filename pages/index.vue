@@ -62,12 +62,16 @@ async function connectMetamask() {
                 await navigateTo('/play')
             } else if (error) {
                 loginStatus.value = 'error'
-                toast.error('Login failed. Please try again.')
+                toast.error(
+                    `Login failed: ${
+                        error ?? 'unknown error'
+                    }. Please try again later.`,
+                )
                 logger.debug(error)
             } else {
                 loginStatus.value = 'success'
                 toast.success(
-                    'Congratulations, you have received a reward of 888888 REV!',
+                    'Congratulations, you have received a reward of 1888888 REV!',
                 )
                 await navigateTo('/play')
             }

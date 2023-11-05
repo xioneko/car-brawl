@@ -35,7 +35,7 @@ export class CarBrawlServer {
             logger.info(`Client ${socket.id} Connected`)
 
             socket.on('joinRoom', (player, type, options) => {
-                logger.debug(`Receive "joinRoom" event from ${player}`)
+                // logger.debug(`Receive "joinRoom" event from ${player}`)
 
                 let room = this.roomOfPlayer.get(player)
                 const rejoin = !_.isNil(room) && room.type === type
@@ -57,18 +57,24 @@ export class CarBrawlServer {
                         const RoomCtor = roomRegistry[type]!
                         room = new RoomCtor(this.io)
                     }
-                    this.roomOfPlayer.set(player, room)
-                    this.rooms.add(room)
-                }
-                const [success, error] = room!.onAuth(options)
-                if (success) {
-                    socket.emit('joinStatus', true)
+
+                    const [success, error] = room!.onAuth(options)
+                    if (success) {
+                        socket.emit('joinStatus', true)
+
+                        this.roomOfPlayer.set(player, room!)
+                        this.rooms.add(room!)
+                    } else {
+                        socket.emit('joinStatus', false, error)
+                        return
+                    }
                 } else {
-                    socket.emit('joinStatus', false, error)
-                    return
+                    socket.emit('joinStatus', true)
                 }
+
                 socket.join(room!.roomId)
                 room!.onJoin(player, options, rejoin)
+
                 logger.info(
                     `${player} ${rejoin ? 'rejoin' : 'join'} the room ${
                         room!.roomId
@@ -115,17 +121,19 @@ export class CarBrawlServer {
                     process.dev ? 100 : 100_000
                 }})`,
             )
-            await sendDeploy(deploy)
+            await sendDeploy(deploy, () => {
+                throw new Error('Send deploy error: check the deploy code')
+            })
             await checkDeployStatus(
                 deploy.signature,
                 (errored, systemDeployError) => {
-                    if (errored) {
-                        throw new Error('Deploy execution error')
-                    } else if (systemDeployError) {
-                        throw new Error(`${systemDeployError}.`)
-                    }
+                    throw new Error(
+                        'Does the deployer has enough REV? ' +
+                            systemDeployError,
+                    )
                 },
             )
+            logger.success('Host game deploy success')
         } catch (error) {
             logger.error('Host game deploy failed:', error)
         }

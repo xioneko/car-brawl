@@ -26,40 +26,22 @@ export default defineEventHandler(async (event): Promise<PostBuyTicket.Res> => {
             deployer: remove0x(pubKeyHex),
         }
 
-        // eslint-disable-next-line n/handle-callback-err
-        await sendDeploy(deployRequest, (error) => {
-            throw createError({
-                statusCode: 400,
-                message: 'Deploy request error: check the deploy code',
-            })
-        })
+        await sendDeploy(deployRequest)
+
         await propose()
 
         const deployId = deployRequest.signature
         await checkDeployStatus(deployId, (errored, systemDeployError) => {
-            if (errored) {
-                throw createError({
-                    statusCode: 400,
-                    message:
-                        'Deploy execution error: does the deployer has enough REV?',
-                })
-            } else if (systemDeployError) {
-                throw createError({
-                    statusCode: 500,
-                    message: `${systemDeployError} (rchain system error).`,
-                })
-            }
+            logger.debug('Deploy status:', systemDeployError)
+            throw createError({
+                statusCode: 400,
+                message: 'Do you have enough REV?',
+            })
         })
         const [success, msg] = await dataAtName<[boolean, string]>(deployId)
 
         if (success) {
             const accessToken = encrypt(account.revAddr)
-            logger.debug(
-                'revAddr:',
-                account.revAddr,
-                'accessToken:',
-                accessToken,
-            )
             return { accessToken }
         }
 
