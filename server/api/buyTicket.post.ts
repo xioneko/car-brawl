@@ -1,7 +1,8 @@
 import * as ethUtil from '@ethereumjs/util'
 import { useLogger } from '@nuxt/kit'
+import { CompetitiveRoom } from '../socket/rooms'
 import { sendDeploy, propose, dataAtName } from '../rchain/http'
-import { DeployData, DeployRequest, PostBuyTicket, RevAccount } from '~/models'
+import { DeployRequest, PostBuyTicket } from '~/models'
 
 const logger = useLogger('BuyTicket Service')
 
@@ -12,8 +13,6 @@ export default defineEventHandler(async (event): Promise<PostBuyTicket.Res> => {
         signature: sigHex,
     } = await readBody<PostBuyTicket.Req>(event)
     try {
-        verify(account, deployData, sigHex)
-
         const pubKeyHex = recoverPublicKeyEth(
             deployDataProtobufSerialize(deployData),
             sigHex,
@@ -41,7 +40,9 @@ export default defineEventHandler(async (event): Promise<PostBuyTicket.Res> => {
         const [success, msg] = await dataAtName<[boolean, string]>(deployId)
 
         if (success) {
-            const accessToken = encrypt(account.revAddr)
+            const accessToken = CompetitiveRoom.createAccessToken(
+                account.revAddr,
+            )
             return { accessToken }
         }
 
@@ -51,12 +52,6 @@ export default defineEventHandler(async (event): Promise<PostBuyTicket.Res> => {
         throw error
     }
 })
-
-function verify(account: RevAccount, deploy: DeployData, signature: string) {
-    // TODO:
-    // 1. 验证提交的 deploy 执行了 @"BuyTicket" 合约
-    // 2. 验证 account 属于部署者
-}
 
 function recoverPublicKeyEth(data: Uint8Array, sigHex: string) {
     const hashed = ethUtil.hashPersonalMessage(data)

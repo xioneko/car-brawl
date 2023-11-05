@@ -2,17 +2,29 @@ contract @"CarBrawl"(@{
   "host": host,     // string
   "cost": cost,     // int
 }) = {
-  new debug(`rho:io:stdout`) in {
+  new debug(`rho:io:stdout`), ticketRegistryCh in {
+    ticketRegistryCh!(Set()) |
     // 购买入场券
     contract @"BuyTicket"(@deployer, @player, return) = {
-      new result in {
-        @"Transfer"!(deployer, player, host, cost, *result) |
-        for (@(success, msg) <- result) {
-          if (success) {
-            return!((true, player ++ " buy a ticket."))
-          } else {
-            debug!(msg) |
-            return!((false, msg))
+      for(@tickets <- ticketRegistryCh) {
+        match tickets.contains(player) {
+          true => {
+            return!((true, player ++ " has already bought a ticket.")) |
+            ticketRegistryCh!(tickets)
+          }
+          false => {
+            new transferRes in {
+              @"Transfer"!(deployer, host, player, cost, *transferRes) |
+              for (@(success, msg) <- transferRes) {
+                if (success) {
+                  ticketRegistryCh!(tickets.add(player)) |
+                  return!((true, player ++ " buys a ticket."))
+                } else {
+                  ticketRegistryCh!(tickets) |
+                  debug!((false, msg))
+                }
+              }
+            }
           }
         }
       }
@@ -49,8 +61,9 @@ contract @"CarBrawl"(@{
             iterate!(pointsMap) |
             for (@{player: points, ...rest} <= iterate) {
               if (rest.size() > 0) iterate!(rest) |
-              for (@players <- playersCh) {
+              for (@players <- playersCh; @tickets <- ticketRegistryCh) {
                 playersCh!(players) |
+                ticketRegistryCh!(tickets.delete(player)) |
                 if (players.contains(player)) {
                   for (@prev <- resultsCh) {
                     debug!("${player} win points ${points}" %% {"player": player, "points": points} ) |

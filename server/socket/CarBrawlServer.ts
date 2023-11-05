@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { Server } from 'socket.io'
 import { useLogger } from '@nuxt/kit'
-import { SystemRevAddr, propose, sendDeploy } from '../rchain/http'
+import { SystemRevAddr, sendDeploy } from '../rchain/http'
 import { Room } from './Room'
 import { ClientEvents, ServerEvents } from '~/models/events'
 import { RoomType } from '~/models/room'
@@ -118,12 +118,10 @@ export class CarBrawlServer {
         try {
             const deploy = await createSysDeployReq(
                 `@"CarBrawl"!({"host": "${SystemRevAddr}", "cost": ${
-                    process.dev ? 100 : 100_000
+                    process.dev ? 1_000 : 100_000
                 }})`,
             )
-            await sendDeploy(deploy, () => {
-                throw new Error('Send deploy error: check the deploy code')
-            })
+            await sendDeploy(deploy)
             await checkDeployStatus(
                 deploy.signature,
                 (errored, systemDeployError) => {

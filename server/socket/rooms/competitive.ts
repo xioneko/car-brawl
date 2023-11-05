@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import _ from 'lodash'
 import { useLogger } from '@nuxt/kit'
 import type { Server } from 'socket.io'
@@ -81,9 +82,12 @@ export class CompetitiveRoom extends Room<
         const { accessToken } = options
         if (accessToken) {
             try {
-                const content = decrypt(accessToken)
-                // logger.debug(`Decrypted access token: ${content}`)
-                if (content === options.account.revAddr) {
+                if (
+                    CompetitiveRoom.verifyAccessToken(
+                        accessToken,
+                        options.account.revAddr,
+                    )
+                ) {
                     return [true]
                 } else {
                     return [false, 'Invalid access token']
@@ -182,5 +186,29 @@ export class CompetitiveRoom extends Room<
         } catch (error) {
             logger.error('End game failed:', error)
         }
+    }
+
+    static createAccessToken(revAddr: string) {
+        const iv = crypto.randomBytes(16)
+        const cipher = crypto.createCipheriv(
+            'aes-256-ctr',
+            process.env.ACCESS_TOKEN_KEY!,
+            iv,
+        )
+        const encrypted = cipher.update(revAddr, 'utf-8', 'hex')
+        return iv.toString('hex') + encrypted + cipher.final('hex')
+    }
+
+    static verifyAccessToken(accessToken: string, revAddr: string) {
+        const iv = accessToken.slice(0, 32)
+        const data = accessToken.slice(32)
+        const decipher = crypto.createDecipheriv(
+            'aes-256-ctr',
+            process.env.ACCESS_TOKEN_KEY!,
+            Buffer.from(iv, 'hex'),
+        )
+        const decrypted = decipher.update(data, 'hex', 'utf-8')
+        const content = decrypted + decipher.final('utf-8')
+        return content === revAddr
     }
 }
