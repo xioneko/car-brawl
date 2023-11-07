@@ -14,14 +14,14 @@ contract @"CarBrawl"(@{
           }
           false => {
             new transferRes in {
-              @"Transfer"!(deployer, host, player, cost, *transferRes) |
+              @"Transfer"!(deployer, player, host, cost, *transferRes) |
               for (@(success, msg) <- transferRes) {
                 if (success) {
                   ticketRegistryCh!(tickets.add(player)) |
                   return!((true, player ++ " buys a ticket."))
                 } else {
                   ticketRegistryCh!(tickets) |
-                  debug!((false, msg))
+                  debug!("Buy ticket transfer failed: " ++ msg)
                 }
               }
             }

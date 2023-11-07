@@ -1,10 +1,14 @@
 <template>
     <div>
         <div v-if="status === GameStatus.Setup">
-            <Setup @on-finish="startup" />
+            <PrettyContainer>
+                <Setup class="h-full w-full" @on-finish="startup" />
+            </PrettyContainer>
         </div>
         <div v-else-if="status === GameStatus.Pending">
-            <Pending @on-finish="status = GameStatus.Playing" />
+            <PrettyContainer>
+                <Pending @on-finish="status = GameStatus.Playing" />
+            </PrettyContainer>
         </div>
         <div v-else-if="status === GameStatus.Playing" class="">
             <Playground class="h-screen" :game-state="gameState" />
@@ -12,7 +16,7 @@
         <div v-else-if="status === GameStatus.Ended">
             <!-- <Ending @on-finish="status = GameStatus.Setup" /> -->
         </div>
-        <User />
+        <User class="absolute right-4 top-4" />
         <Popup />
     </div>
 </template>

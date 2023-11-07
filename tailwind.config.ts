@@ -12,7 +12,9 @@ export default <Config>{
     ],
     theme: {
         fontFamily: {
-            body: ['JustForFun'],
+            narnialone: ['Narnialone', 'sans-serif'],
+            aller: ['Aller_Std_It', 'sans-serif'],
+            just_for_fun: ['just_for_fun', 'sans-serif'],
         },
     },
     plugins: [],

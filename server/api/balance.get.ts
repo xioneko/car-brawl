@@ -9,7 +9,7 @@ export default defineEventHandler(async (event): Promise<GetBalance.Res> => {
 
     logger.debug('Check balance of REV address:', revAddr)
 
-    const code = `@"CheckBalance"!("${revAddr}")`
+    const code = checkBalanceRho(revAddr)
     const {
         // @ts-ignore
         expr: [expr],
@@ -27,3 +27,17 @@ export default defineEventHandler(async (event): Promise<GetBalance.Res> => {
     const balance = expr.ExprInt.data as number
     return { amount: balance }
 })
+
+const checkBalanceRho = (addr: string) => `
+new return, rl(\`rho:registry:lookup\`), RevVaultCh, vaultCh in {
+    rl!(\`rho:rchain:revVault\`, *RevVaultCh) |
+    for (@(_, RevVault) <- RevVaultCh) {
+        @RevVault!("findOrCreate", "${addr}", *vaultCh) |
+        for (@maybeVault <- vaultCh) {
+            match maybeVault {
+                (true, vault) => @vault!("balance", *return)
+                (false, err)  => return!(err)
+            }
+        }
+    }
+}`

@@ -1,20 +1,42 @@
 <template>
     <div>
-        <div
-            class="absolute left-1/2 top-1/2 inline-flex w-60 -translate-x-1/2 -translate-y-1/2 flex-col gap-5"
-        >
-            <button
-                class="inline-block rounded-lg border border-orange-400 p-2 text-left text-neutral-600 shadow-md hover:bg-orange-200/10"
-                @click="connectMetamask"
-            >
-                Connect Metamask
-            </button>
-            <button
-                class="inline-block rounded-lg border border-orange-400 p-2 text-left text-neutral-600 shadow-md hover:bg-orange-200/10"
-            >
-                <NuxtLink to="/play">Guest Mode</NuxtLink>
-            </button>
-        </div>
+        <PrettyContainer>
+            <div class="flex h-full w-full">
+                <div class="relative top-[14%] lg:top-[8%]">
+                    <img
+                        class="slide-in ml-6 w-[36em] lg:w-[44em]"
+                        src="~/assets/images/cool-car.svg"
+                        alt="Cool Car"
+                        width="1840"
+                        height="1080"
+                    />
+                </div>
+                <div class="relative mx-auto self-center">
+                    <p class="font-narnialone text-6xl font-bold text-white">
+                        Car brawl
+                    </p>
+                    <p class="mt-6 font-aller text-sm leading-8 text-gray-300">
+                        try this game and you will never regret it ! ! !
+                    </p>
+                    <div
+                        class="mt-10 flex flex-col items-start gap-y-6 lg:justify-start"
+                    >
+                        <button
+                            class="text-whit inline-block w-full rounded-lg border border-orange-300/75 p-2 text-center text-white hover:bg-orange-400/25"
+                            @click="connectMetamask"
+                        >
+                            Connect Metamask
+                        </button>
+                        <button
+                            class="text-whit inline-block w-full rounded-lg border border-orange-300/75 p-2 text-center text-white hover:bg-orange-400/25"
+                        >
+                            <NuxtLink to="/play">Guest Mode</NuxtLink>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </PrettyContainer>
+
         <LoadingSpinner :status="loginStatus" />
     </div>
 </template>
@@ -122,3 +144,17 @@ async function connectMetamask() {
     }
 }
 </script>
+
+<style scoped>
+.slide-in {
+    animation: slideIn 1s ease-out;
+    animation-fill-mode: forwards;
+    transform: translateX(-100%); /* 初始位置在视图左侧 */
+}
+
+@keyframes slideIn {
+    to {
+        transform: translateX(0); /* 最终位置，回到原始位置 */
+    }
+}
+</style>
