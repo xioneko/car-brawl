@@ -1,12 +1,10 @@
 import _ from 'lodash'
-import { useLogger } from '@nuxt/kit'
 import { CarBrawlServer } from './socket/CarBrawlServer'
 import { CompetitiveRoom, FunRoom, SingleRoom } from './socket/rooms'
 import { propose, sendDeploy } from './rchain/http'
 import { RoomType } from '~/models/room'
 
 const logger = useLogger('Server')
-logger.level = process.dev ? 4 : 3
 
 if (process.dev) {
     // @ts-expect-error

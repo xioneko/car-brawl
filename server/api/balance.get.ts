@@ -1,9 +1,7 @@
-import { useLogger } from '@nuxt/kit'
 import { rnodeRead } from '../rchain/axios'
 import { GetBalance } from '~/models/http'
 
 const logger = useLogger('Balance Service')
-logger.level = process.dev ? 4 : 3
 
 export default defineEventHandler(async (event): Promise<GetBalance.Res> => {
     const { revAddr } = getQuery<GetBalance.Req>(event)

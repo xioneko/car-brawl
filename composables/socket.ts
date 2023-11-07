@@ -1,4 +1,3 @@
-import { consola } from 'consola'
 import _ from 'lodash'
 import { io, Socket } from 'socket.io-client'
 import type { ServerEvents, ClientEvents } from '~/models/events'
