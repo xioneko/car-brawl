@@ -1,37 +1,34 @@
-import { logger } from '../rchain/logger'
-import {
-    dataAtName,
-    fetchDeployInfoByPolling,
-    propose,
-    sendDeploy,
-} from '../rchain/http'
-import type { PostDeploy } from '~/models/protocol'
+import { useLogger } from '@nuxt/kit'
+import { dataAtName, propose, sendDeploy } from '../rchain/http'
+import type { PostDeploy } from '~/models/http'
+
+const logger = useLogger('Deploy Service')
+logger.level = process.dev ? 4 : 3
 
 export default defineEventHandler(async (event): Promise<PostDeploy.Res> => {
-    const { deployRequest, ack } = await readBody<PostDeploy.Req>(event)
+    const { deployRequest } = await readBody<PostDeploy.Req>(event)
+    try {
+        await sendDeploy(deployRequest)
+        await propose()
 
-    await sendDeploy(deployRequest).catch((err) => {
-        const { statusCode, statusMessage } = err.response
-        createError({ statusCode, statusMessage })
-    })
-
-    await propose()
-
-    const deployId = deployRequest.signature
-    const deployInfo = await fetchDeployInfoByPolling(deployId, 8)
-    const { errored, systemDeployError } = deployInfo
-    if (errored) {
-        logger.info('Deploy execution error:', errored)
-        throw createError({
-            statusCode: 400,
-            statusMessage: errored,
+        const deployId = deployRequest.signature
+        await checkDeployStatus(deployId, (errored, systemDeployError) => {
+            if (errored) {
+                throw createError({
+                    statusCode: 400,
+                    message: 'Deploy execution error',
+                })
+            } else if (systemDeployError) {
+                throw createError({
+                    statusCode: 500,
+                    message: `${systemDeployError} (rchain system error).`,
+                })
+            }
         })
-    } else if (systemDeployError) {
-        throw createError({
-            statusCode: 500,
-            statusMessage: `${systemDeployError} (rchain system error).`,
-        })
+        const result = await dataAtName(deployId)
+        return { data: result }
+    } catch (error) {
+        logger.debug(error)
+        throw error
     }
-    const result = ack ? await dataAtName(ack) : null
-    return { data: result }
 })

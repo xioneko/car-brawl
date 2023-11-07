@@ -1,4 +1,9 @@
-import { type RevAccount, type GuestAccount, isRevAccount } from './account'
+import {
+    isRevAccount,
+    isGuestAccount,
+    type GuestAccount,
+    type RevAccount,
+} from './account'
 import type { UserConfig } from './config'
 
 export enum RoomType {
@@ -45,9 +50,12 @@ export function createRoomOptions(
     userConf: UserConfig,
     accessToken?: string,
 ) {
-    if (isRevAccount(account)) {
-        return new RegularOptions(account, userConf, accessToken)
-    } else {
-        return new GuestOptions(account, userConf)
+    switch (true) {
+        case isRevAccount(account):
+            return new RegularOptions(account, userConf, accessToken)
+        case isGuestAccount(account):
+            return new GuestOptions(account, userConf)
+        default:
+            throw new Error('Unknown account type')
     }
 }

@@ -1,169 +1,120 @@
-contract @"CarBrawl"(@gameId, @{
+contract @"CarBrawl"(@{
   "host": host,     // string
   "cost": cost,     // int
-  "punish": punish  // int
 }) = {
-  new debug(`rho:io:stdout`), playersCh, activeCh, rewardPool, rewardCh, archiveCh in {
-    debug!("Game " ++ gameId ++ " is created")
-    |
-    playersCh!({}) |  // {"playerA": 123, "playerB", 234, ...}
-    activeCh!(true) |
-    rewardPool!(0) |
-    archiveCh!([]) |  // [["playerA", 123], ["playerB", 234], ...]
-    rewardCh!({})     // {"playerA": 2000, "playerB": 1500, ...}
-    | // 加入对战
-    contract @[gameId, "join"](@player, return) = {
-      for (@isActive <- activeCh) {
-        if (isActive) {
-          new result in {
-            @"Transfer"!(player, host, cost, *result) |
-            for (@(success, msg) <- result) {
-              if (success) {
-                for (@prev <- rewardPool) {
-                  rewardPool!(prev + cost)
-                } |
-                for (@m <- playersCh) {
-                  playersCh!(m.set(player, 0)) |
-                  return!((true, player ++ " join the game " ++ gameId))
+  new debug(`rho:io:stdout`), ticketRegistryCh in {
+    ticketRegistryCh!(Set()) |
+    // 购买入场券
+    contract @"BuyTicket"(@deployer, @player, return) = {
+      for(@tickets <- ticketRegistryCh) {
+        match tickets.contains(player) {
+          true => {
+            return!((true, player ++ " has already bought a ticket.")) |
+            ticketRegistryCh!(tickets)
+          }
+          false => {
+            new transferRes in {
+              @"Transfer"!(deployer, player, host, cost, *transferRes) |
+              for (@(success, msg) <- transferRes) {
+                if (success) {
+                  ticketRegistryCh!(tickets.add(player)) |
+                  return!((true, player ++ " buys a ticket."))
+                } else {
+                  ticketRegistryCh!(tickets) |
+                  debug!("Buy ticket transfer failed: " ++ msg)
                 }
-              } else {
-                return!((false, msg))
               }
             }
           }
-        } else {
-          return!((false, "Game " ++ gameId ++ " has ended"))
-        } |
-        activeCh!(isActive)
-      }
-    }
-    | // 结算积分
-    contract @[gameId, "winPoints"](@player, @n, return) = {
-      for (@isActive <- activeCh) {
-        activeCh!(isActive) |
-        if (isActive) {
-          for (@m <- playersCh) {
-              if (m.contains(player)) {
-                playersCh!(m.set(player, n)) |
-                return!((true, "${player} win ${points}" %% {"player": player, "points": n}))
-              } else {
-                playersCh!(m) |
-                return!((false, "The player " ++ player ++ " hasn't joined the game " ++ gameId))
-              }
-          }
-        } else {
-          return!((false, "The game " ++ gameId ++ " has ended"))
         }
       }
     }
-    | // 离开对战
-    contract @[gameId, "leave"](@player, return) = {
-      for (@isActive <- activeCh) {
-        activeCh!(isActive) |
-        if (isActive) {
-          new result in {
-            @"Transfer"!(host, player, cost - punish, *result) |
-            for (@(success, msg) <- result) {
-              if (success) {
-                for (@m <- playersCh) {
-                    playersCh!(m.delete(player)) |
-                    for (@prev <- rewardPool) {
-                      rewardPool!(prev - cost + punish)
-                    } |
-                    return!((true, "player " ++ player  ++ " leave the game " ++ gameId, { "refund": cost - punish}))
-                }
-              } else {
-                return!((false, msg))
+    | // 创建游戏
+    contract @"CreateGame"(@gameId) = {
+      new gameResultCh, playersCh, rewardPool in {
+        debug!("Game " ++ gameId ++ " is created")
+        |
+        playersCh!(Set()) |  // Set("p1_addr", "p2_addr", ...)
+        rewardPool!(0) |
+        gameResultCh!()  // [["playerA", 123], ["playerB", 234], ...]
+        | // 加入游戏
+        contract @[gameId, "joinGame"](@[player, ...rest], return) = {
+            if (rest.length() > 0) @[gameId, "joinGame"]!(rest, *return) |
+            for (@prev <- playersCh) {
+              match prev.contains(player) {
+                false => {
+                  for (@prev <- rewardPool) {
+                    rewardPool!(prev + cost)
+                  } |
+                  playersCh!(prev.add(player)) |
+                  debug!(player ++ " join the game " ++ gameId ++ ".") |
+                  return!(player ++ " join the game " ++ gameId ++ ".")
+                  }
+                true => playersCh!(prev)
               }
             }
-          }
-        } else {
-          return!((false, "The game " ++ gameId ++ " has ended"))
         }
-      }
-    }
-    | // 结束对战
-    contract @[gameId, "end"](return) = {
-      for (_ <- activeCh) {
-        return!((true, "The game " ++ gameId ++ " is ended.")) |
-        activeCh!(false)
-      } |
-      for (@{k: v, ...r} <= playersCh) {
-        playersCh!(r) |
-        for (@prev <- archiveCh) {
-          archiveCh!(prev ++ [[k, v]])
-        }
-      }
-    }
-    | // 奖励分配
-    contract @[gameId, "reward"](return) = {
-      for (@isActive <- activeCh; @rwdState <- rewardCh) {
-        activeCh!(isActive) |
-        rewardCh!(rwdState) |
-        if (isActive) {
-          return!((false, "The game " ++ gameId ++ " is not ended yet."))
-        } else if (rwdState.size() > 0) {
-          return!((false, "Can only reward once in the game " ++ gameId ++ "."))
-        } else {
-          return!((true, "Rewarding in progress.")) |
-          for (@l <- archiveCh) {
-            new result, compare in {
-              @"mergeSort"!(l, *compare, *result) |
-              for (@sorted <- result; @R <- rewardPool) {
-                // debug!(sorted) |
-                archiveCh!(sorted) |
-                new it in {
-                  it!(0) |
-                  for (@i <= it) {
-                    if (i < sorted.length()) {
-                      it!(i + 1) |
-                      match (sorted.nth(i), sorted.length()) {
-                        ([player, _], n) => {
-                          new res, computeReward in {
-                            computeReward!(R, n - i, n, *res) |
-                            for (@reward <- res) {
-                              new _res in {
-                                @"Transfer"!(host, player, reward, *_res) |
-                                for (@(success, msg) <- _res) {
-                                  // No failure is allowed here
-                                  if (not success) {
-                                    @"Transfer"!(host, player, reward, *_res)
-                                  } else {
-                                    // debug!("Reward ${player} ${rwd}" %% { "player": player, "rwd": reward})
-                                    for (@prev <- rewardCh) {
-                                      rewardCh!(prev.set(player, reward))
-                                    }
-                                  }
-                                }
-                              }
-                            } |
-                            contract computeReward(@R, @rk, @n, return) = {
-                              // debug!("total: ${R}, rank: ${rk}, number: ${n}" %% { "R": R, "rk": rk, "n": n}) |
-                              return!(R * (20 + 6 * (n - rk)) / (20 * n + 3 * n * n - 3 * n))
-                            }
-                          }
-                        }
-                      }
+        | // 结束游戏
+        contract @[gameId, "endGame"](@pointsMap, return) = {
+          new iterate, resultsCh in {
+            resultsCh!([]) |
+            iterate!(pointsMap) |
+            for (@{player: points, ...rest} <= iterate) {
+              if (rest.size() > 0) iterate!(rest) |
+              for (@players <- playersCh; @tickets <- ticketRegistryCh) {
+                playersCh!(players) |
+                ticketRegistryCh!(tickets.delete(player)) |
+                if (players.contains(player)) {
+                  for (@prev <- resultsCh) {
+                    debug!("${player} win points ${points}" %% {"player": player, "points": points} ) |
+                    return!("${player} win points ${points}" %% {"player": player, "points": points} ) |
+                    if (prev.length() == players.size() - 1) {
+                      gameResultCh!(prev ++ [[player, points]])
+                    } else {
+                      resultsCh!(prev ++ [[player, points]])
                     }
                   }
                 }
-              } |
-              contract compare(@a, @b, return) = {
-                return!(a.nth(1) < b.nth(1))
               }
             }
           }
         }
-      }
-    }
-    | // 查看奖金分配结果
-    contract @[gameId, "checkReward"](return) = {
-      for (@final <- rewardCh) {
-        rewardCh!(final) |
-        if (final.size() > 0) {
-          return!((true, "Reward successful.", final))
-        } else {
-          return!((false, "Not reward yet or failed."))
+        | // 奖励分配
+        contract @[gameId, "reward"](@deployer, return) = {
+          for (@res <- gameResultCh; @R <- rewardPool) {
+            debug!(("gameResultCh", res)) |
+            debug!(("rewardPool", R)) |
+            new sortedResCh, compareFunc in {
+              @"mergeSort"!(res, *compareFunc, *sortedResCh) |
+              contract compareFunc(@a, @b, return) = {
+                return!(a.nth(1) < b.nth(1))
+              } |
+              new rankCh in {
+                rankCh!(res.length()) |
+                for (@[[player, _], ...rest] <= sortedResCh; @rank <= rankCh) {
+                  if (rest.length() > 0) sortedResCh!(rest) |
+                  if (rank > 0) rankCh!(rank - 1) |
+                  new rewardCh, computeReward, transferResCh in {
+                    computeReward!(R, rank, res.length(), *rewardCh) |
+                    for (@reward <- rewardCh) {
+                      @"Transfer"!(deployer, host, player, reward, *transferResCh) |
+                      for (@(success, msg) <- transferResCh) {
+                        if (success) {
+                          return!((player, reward))
+                        } else {
+                          debug!(("Reward Transfer failed:", msg))
+                        }
+                      }
+                    } |
+                    contract computeReward(@R, @rk, @n, return) = {
+                      // debug!("total: ${R}, rank: ${rk}, number: ${n}" %% { "R": R, "rk": rk, "n": n}) |
+                      return!(R * (20 + 6 * (n - rk)) / (20 * n + 3 * n * n - 3 * n))
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

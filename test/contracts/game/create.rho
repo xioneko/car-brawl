@@ -1,7 +1,0 @@
-new log(`rho:io:stdout`) in {
-  @"CarBrawl"!("id", {
-    "host": "fake",
-    "cost": 100000,
-    "punish": 30000,
-  })
-}

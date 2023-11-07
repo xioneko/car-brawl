@@ -1,0 +1,6 @@
+new log(`rho:io:stdout`) in {
+    @"BuyTicket"!("TestDeployer", "player1", *log) |
+    @"BuyTicket"!("TestDeployer", "player2", *log) |
+    @"BuyTicket"!("TestDeployer", "player3", *log) |
+    @"BuyTicket"!("TestDeployer", "player4", *log)
+}

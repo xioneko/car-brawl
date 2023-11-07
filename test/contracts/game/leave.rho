@@ -1,4 +1,0 @@
-new log(`rho:io:stdout`) in {
-  @["id", "leave"]!("player2", *log) |
-  @["id", "leave"]!("player5", *log)
-}

@@ -1,7 +1,7 @@
 <template>
     <div>
         <div
-            class="background fixed h-screen"
+            class="background fixed h-screen w-screen"
             :style="{ backgroundColor: styles.theme.background }"
         ></div>
         <div
@@ -48,11 +48,9 @@
 <script lang="ts" setup>
 import _ from 'lodash'
 import dayjs from 'dayjs'
-import { consola } from 'consola'
 import { Car, isCompetitiveGameState, GameState } from '~/models/game'
 
-const logger = consola.withTag('Playground')
-logger.level = process.dev ? 4 : 3
+const logger = useLogger('Playground')
 
 const account = useAccountStore()
 const userConf = useUserConfigStore()

@@ -1,13 +1,36 @@
+import _ from 'lodash'
 import { rnodeAdmin, rnodeHttp } from './axios'
 import { parseRhoExpr } from './parse'
-import { DeployInfo, DeployRequest } from '~/models/protocol'
 
-export function sendDeploy(deployRequest: DeployRequest) {
-    return rnodeHttp.post('/api/deploy', deployRequest)
+import { DeployInfo, DeployRequest } from '~/models/http'
+
+const logger = useLogger('Rchain HTTP')
+
+export const SystemRevAddr = process.env.BOOT_REV_ADDRESS!
+
+export async function sendDeploy(deployRequest: DeployRequest) {
+    try {
+        const res = await rnodeHttp.post('/api/deploy', deployRequest)
+        return res
+    } catch (error: any) {
+        throw new Error(
+            `Send deploy Error: ${error.response?.data}.\nDeploy ${_.truncate(
+                deployRequest.data.term,
+                {
+                    separator: ' ',
+                    length: 24,
+                },
+            )}`,
+        )
+    }
 }
 
 export async function propose() {
-    await rnodeAdmin.post('/api/propose')
+    try {
+        await rnodeAdmin.post('/api/propose')
+    } catch (error: any) {
+        logger.warn('Propose failed:', error.response?.data)
+    }
 }
 
 export async function fetchDeployInfo(
@@ -20,6 +43,7 @@ export async function fetchDeployInfo(
             if (!err.response || err.response.status !== 400) {
                 throw err
             }
+            return {}
         })
 
     if (blockHash) {
@@ -30,38 +54,14 @@ export async function fetchDeployInfo(
     }
 }
 
-export async function fetchDeployInfoByPolling(
-    deployId: string,
-    maxAttempts: number,
-) {
-    let deployInfo = await fetchDeployInfo(deployId)
-    let attemptsCnt = 1
-    if (!deployInfo) {
-        deployInfo = await new Promise((resolve, reject) => {
-            const FETCH_POLLING = setInterval(async () => {
-                const d = await fetchDeployInfo(deployId)
-                ++attemptsCnt
-                if (d) {
-                    clearInterval(FETCH_POLLING)
-                    resolve(d)
-                } else if (attemptsCnt === maxAttempts) {
-                    reject(new Error('Fetch deploy info timeout.'))
-                }
-            }, 7500)
-        })
-    }
-    return deployInfo as DeployInfo
-}
-
-export async function dataAtName<T>(name: string): Promise<T> {
-    const {
-        exprs: [{ expr }],
-    } = (
+export async function dataAtName<T>(name: string, depth = 1): Promise<T> {
+    const { exprs } = (
         await rnodeHttp.post(`/api/data-at-name`, {
-            depth: 1,
+            depth,
             name: { UnforgDeploy: { data: name } },
         })
     ).data
+    const expr = exprs[0]?.expr
 
     return parseRhoExpr(expr) as T
 }

@@ -37,8 +37,7 @@ import _ from 'lodash'
 import { consola } from 'consola'
 import { Car, CarStatus, Constant } from '~/models/game'
 
-const logger = consola.withTag('Car')
-logger.level = process.dev ? 4 : 3
+const logger = useLogger('Car')
 
 const props = defineProps<{
     state: Car

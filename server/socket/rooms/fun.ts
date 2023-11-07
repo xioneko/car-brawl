@@ -1,4 +1,3 @@
-import { useLogger } from '@nuxt/kit'
 import { Server } from 'socket.io'
 import { Room } from '../Room'
 import {

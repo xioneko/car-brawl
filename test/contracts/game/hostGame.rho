@@ -1,0 +1,6 @@
+new log(`rho:io:stdout`) in {
+  @"CarBrawl"!({
+    "host": "mockHost",
+    "cost": 100000,
+  })
+}
