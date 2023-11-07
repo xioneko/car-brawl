@@ -43,13 +43,14 @@
 
 <script lang="ts" setup>
 import _ from 'lodash'
-import { useToast } from 'vue-toastification'
+// @ts-ignore
+import * as Toast from 'vue-toastification/dist/index.mjs'
 import type { AsyncDataRequestStatus } from 'nuxt/dist/app/composables/asyncData'
 import { type PostLogin } from '~/models'
 
 const loginStatus = ref<AsyncDataRequestStatus>('idle')
 const logger = useLogger('Index')
-const toast = useToast()
+const toast = Toast.useToast()
 const account = useAccountStore()
 
 onMounted(() => {

@@ -24,7 +24,8 @@
 <script lang="ts" setup>
 import _ from 'lodash'
 import { Socket } from 'socket.io-client'
-import { useToast } from 'vue-toastification'
+// @ts-ignore
+import * as Toast from 'vue-toastification/dist/index.mjs'
 import {
     GameState,
     type CompetitiveServerEvents,
@@ -52,7 +53,7 @@ const gameState = ref<GameState>()
 const socket = useSocket()
 const ctrl = useCtrlSample()
 const account = useAccountStore()
-const toast = useToast()
+const toast = Toast.useToast()
 
 let sendCtrl: NodeJS.Timeout | undefined
 watch(
@@ -115,6 +116,7 @@ function startup(
             status.value = GameStatus.Ended
         })
     } else {
+        logger.debug('to emit join Room')
         socket.emit(
             'joinRoom',
             account.playerId,
