@@ -15,7 +15,7 @@
                     <p class="font-narnialone text-6xl font-bold text-white">
                         Car brawl
                     </p>
-                    <p class="mt-6 font-aller text-sm leading-8 text-gray-300">
+                    <p class="font-aller mt-6 text-sm leading-8 text-gray-300">
                         try this game and you will never regret it ! ! !
                     </p>
                     <div
@@ -53,6 +53,7 @@ const toast = useToast()
 const account = useAccountStore()
 
 onMounted(() => {
+    preloadRouteComponents('/play')
     account.$reset()
 })
 

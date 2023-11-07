@@ -1,4 +1,3 @@
-import { useLogger } from '@nuxt/kit'
 import _ from 'lodash'
 import type { Server } from 'socket.io'
 import { ObservableMap, ObservableSet } from '../utils/observable'

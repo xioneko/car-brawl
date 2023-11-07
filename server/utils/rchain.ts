@@ -1,8 +1,8 @@
-import { useLogger } from '@nuxt/kit'
 import { BinaryWriter } from 'google-protobuf'
 import { fetchDeployInfo } from '../rchain/http'
 import { signDeploy } from '../rchain/sign'
 import { rnodeHttp } from '../rchain/axios'
+
 import { DeployData, DeployInfo, DeployRequest } from '~/models'
 
 const logger = useLogger('Rchain API')

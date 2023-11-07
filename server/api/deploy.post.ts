@@ -3,6 +3,7 @@ import { dataAtName, propose, sendDeploy } from '../rchain/http'
 import type { PostDeploy } from '~/models/http'
 
 const logger = useLogger('Deploy Service')
+logger.level = process.dev ? 4 : 3
 
 export default defineEventHandler(async (event): Promise<PostDeploy.Res> => {
     const { deployRequest } = await readBody<PostDeploy.Req>(event)

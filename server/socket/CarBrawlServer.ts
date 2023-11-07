@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import { Server } from 'socket.io'
-import { useLogger } from '@nuxt/kit'
 import { SystemRevAddr, sendDeploy } from '../rchain/http'
 import { Room } from './Room'
 import { ClientEvents, ServerEvents } from '~/models/events'
@@ -23,8 +22,6 @@ export class CarBrawlServer {
             [type in RoomType]: new (server: Server) => Room<any, any>
         },
     ) {
-        this.hostGame()
-
         this.io = new Server(port, {
             cors: {
                 origin: `http://localhost:${process.env.PORT}`,
@@ -114,7 +111,7 @@ export class CarBrawlServer {
         this.startSyncProgress()
     }
 
-    private async hostGame() {
+    async hostGame() {
         try {
             const deploy = await createSysDeployReq(
                 `@"CarBrawl"!({"host": "${SystemRevAddr}", "cost": ${

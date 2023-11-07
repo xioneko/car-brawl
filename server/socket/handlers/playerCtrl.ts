@@ -1,6 +1,4 @@
 import _ from 'lodash'
-import { useLogger } from '@nuxt/kit'
-
 import {
     CarCtrl,
     Bullet,

@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col text-white">
-        <div class="pl-8 pt-8 font-narnialone text-5xl">Car Brawl</div>
+        <div class="font-narnialone pl-8 pt-8 text-5xl">Car Brawl</div>
         <div
             v-if="progress === SetupProgress.ChooseFlavor"
-            class="flex h-full flex-col items-center justify-center gap-7 font-just_for_fun text-5xl text-white"
+            class="font-just_for_fun flex h-full flex-col items-center justify-center gap-7 text-5xl text-white"
         >
             <div
                 v-for="(presets, category) in Flavors"
@@ -20,7 +20,7 @@
         </div>
         <div
             v-else-if="progress === SetupProgress.Startup"
-            class="flex h-full flex-col items-center justify-center gap-7 font-just_for_fun text-5xl"
+            class="font-just_for_fun flex h-full flex-col items-center justify-center gap-7 text-5xl"
         >
             <!-- For Test -->
             <!-- <select
@@ -57,7 +57,7 @@
                 />
             </div>
         </div>
-        <div class="flex justify-between px-7 pb-3 font-just_for_fun text-4xl">
+        <div class="font-just_for_fun flex justify-between px-7 pb-3 text-4xl">
             <button
                 class="disabled:text-white/25"
                 :disabled="progress === SetupProgress.ChooseFlavor"

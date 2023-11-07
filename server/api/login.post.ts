@@ -1,9 +1,9 @@
 import _ from 'lodash'
-import { useLogger } from '@nuxt/kit'
 import { dataAtName, propose, sendDeploy } from '../rchain/http'
 import { type PostLogin } from '~/models/http'
 
 const logger = useLogger('Login Service')
+logger.level = process.dev ? 4 : 3
 const SystemRevAddr = process.env.BOOT_REV_ADDRESS!
 
 export default defineEventHandler(async (event): Promise<PostLogin.Res> => {

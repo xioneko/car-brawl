@@ -5,6 +5,7 @@ import { sendDeploy, propose, dataAtName } from '../rchain/http'
 import { DeployRequest, PostBuyTicket } from '~/models'
 
 const logger = useLogger('BuyTicket Service')
+logger.level = process.dev ? 4 : 3
 
 export default defineEventHandler(async (event): Promise<PostBuyTicket.Res> => {
     const {

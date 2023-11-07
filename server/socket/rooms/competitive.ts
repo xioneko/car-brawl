@@ -1,6 +1,5 @@
 import crypto from 'node:crypto'
 import _ from 'lodash'
-import { useLogger } from '@nuxt/kit'
 import type { Server } from 'socket.io'
 import ms, { StringValue } from 'ms'
 import { Room } from '../Room'

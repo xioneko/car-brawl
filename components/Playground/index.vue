@@ -1,7 +1,7 @@
 <template>
     <div>
         <div
-            class="background fixed h-screen"
+            class="background fixed h-screen w-screen"
             :style="{ backgroundColor: styles.theme.background }"
         ></div>
         <div
