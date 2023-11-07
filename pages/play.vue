@@ -53,6 +53,7 @@ const gameState = ref<GameState>()
 const socket = useSocket()
 const ctrl = useCtrlSample()
 const account = useAccountStore()
+const userConf = useUserConfigStore()
 const toast = Toast.useToast()
 
 let sendCtrl: NodeJS.Timeout | undefined
@@ -78,11 +79,7 @@ onUnmounted(() => {
 
 provide(socketKey, socket)
 
-function startup(
-    gameMode: RoomType,
-    userConf: UserConfig,
-    accessToken?: string,
-) {
+function startup(gameMode: RoomType, accessToken?: string) {
     socket.on('joinStatus', (success, error) => {
         if (success) {
             socket.on('stateSync', (state) => {
@@ -106,7 +103,7 @@ function startup(
             RoomType.CompetitiveRoom,
             new RegularOptions(
                 account.value as RevAccount,
-                userConf,
+                userConf.$state,
                 accessToken,
             ),
         )
@@ -116,13 +113,8 @@ function startup(
             status.value = GameStatus.Ended
         })
     } else {
-        logger.debug('to emit join Room')
-        socket.emit(
-            'joinRoom',
-            account.playerId,
-            gameMode,
-            createRoomOptions(account.value, userConf),
-        )
+        const roomOpts = createRoomOptions(account.value, userConf.$state)
+        socket.emit('joinRoom', account.playerId, gameMode, roomOpts)
     }
 }
 </script>

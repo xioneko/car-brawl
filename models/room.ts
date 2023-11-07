@@ -20,8 +20,8 @@ export class GuestOptions implements RoomOptions {
     account: GuestAccount
     userConfig: UserConfig
     constructor(account: GuestAccount, config: UserConfig) {
-        this.account = account
-        this.userConfig = config
+        this.account = { ...account }
+        this.userConfig = { ...config }
     }
 }
 
@@ -30,8 +30,8 @@ export class RegularOptions implements RoomOptions {
     userConfig: UserConfig
     accessToken?: string
     constructor(account: RevAccount, config: UserConfig, accessToken?: string) {
-        this.account = account
-        this.userConfig = config
+        this.account = { ...account }
+        this.userConfig = { ...config }
         this.accessToken = accessToken
     }
 }

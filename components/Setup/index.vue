@@ -120,7 +120,7 @@ const account = useAccountStore()
 const toast = Toast.useToast()
 
 const emit = defineEmits<{
-    onFinish: [gameMode: RoomType, userConfig: UserConfig, accessToken?: string]
+    onFinish: [gameMode: RoomType, accessToken?: string]
 }>()
 
 function nextStep() {
@@ -146,7 +146,7 @@ async function joinGame() {
     switch (gameMode.value) {
         case RoomType.SingleRoom:
         case RoomType.FunRoom:
-            emit('onFinish', gameMode.value, userConf)
+            emit('onFinish', gameMode.value)
             break
         case RoomType.CompetitiveRoom: {
             try {
@@ -173,7 +173,7 @@ async function joinGame() {
 
                 if (accessToken) {
                     joinStatus.value = 'success'
-                    emit('onFinish', gameMode.value, userConf, accessToken)
+                    emit('onFinish', gameMode.value, accessToken)
                     toast.success('Ticket bought successfully!')
                 } else {
                     joinStatus.value = 'error'
