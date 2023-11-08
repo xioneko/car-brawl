@@ -11,7 +11,7 @@ if (process.dev) {
     import('#internal/nitro/entries/nitro-dev')
 } else {
     // @ts-expect-error
-    import('#internal/nitro/entries/node-server')
+    import('#internal/nitro/entries/vercel')
 }
 
 const port = parseInt(process.env.SOCKET_PORT!)
