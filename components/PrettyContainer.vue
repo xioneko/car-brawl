@@ -55,7 +55,7 @@ const dots = ref<Dot[]>([])
 
 let moveDots: NodeJS.Timeout
 onMounted(() => {
-    const numDots = 100
+    const numDots = 80
     const interval = 20 // 每20毫秒生成一个光点
     for (let i = 0; i < numDots; i++) {
         setTimeout(() => {

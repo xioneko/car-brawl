@@ -79,13 +79,14 @@
 
 <script lang="ts" setup>
 import _ from 'lodash'
-import { useToast } from 'vue-toastification'
+// @ts-ignore
+import * as Toast from 'vue-toastification/dist/index.mjs'
 import type { AsyncDataRequestStatus } from 'nuxt/dist/app/composables/asyncData'
 import { BulletStyle, CarStyle, Theme } from '~/models/config'
 import {
     RoomType,
     type RevAccount,
-    type UserConfig,
+    UserConfig,
     type PostBuyTicket,
 } from '~/models'
 
@@ -108,19 +109,17 @@ const progress = ref<SetupProgress>(SetupProgress.ChooseFlavor)
 const name = ref<string>('Anonymous')
 const joinStatus = ref<AsyncDataRequestStatus>('idle')
 const gameMode = ref(RoomType.SingleRoom)
-const theme = ref(Theme.presets.default)
 const flavor = {
     theme: ref(Theme.presets.default),
     car: ref(CarStyle.presets.default),
     bullet: ref(BulletStyle.presets.default),
 }
 const logger = useLogger('Setup')
-const userConf = useUserConfigStore()
-const account = useAccountStore()
-const toast = useToast()
+const account = useAccount()
+const toast = Toast.useToast()
 
 const emit = defineEmits<{
-    onFinish: [gameMode: RoomType, userConfig: UserConfig, accessToken?: string]
+    onFinish: [gameMode: RoomType, userConf: UserConfig, accessToken?: string]
 }>()
 
 function nextStep() {
@@ -136,12 +135,12 @@ function prevStep() {
 }
 
 async function joinGame() {
-    userConf.$patch({
-        carStyle: flavor.car.value,
-        bulletStyle: flavor.bullet.value,
-        theme: flavor.theme.value,
-        name: name.value,
-    })
+    const userConf = new UserConfig(
+        name.value,
+        flavor.theme.value,
+        flavor.car.value,
+        flavor.bullet.value,
+    )
 
     switch (gameMode.value) {
         case RoomType.SingleRoom:

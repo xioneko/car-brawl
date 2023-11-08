@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     imports: {
         dirs: ['stores'],
     },
-    modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss'],
+    modules: ['@nuxtjs/tailwindcss'],
 
     nitro: {
         entry: '~/server/index.ts',
