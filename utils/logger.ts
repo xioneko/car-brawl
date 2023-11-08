@@ -1,7 +1,7 @@
-import { useLogger as _useLogger } from '@nuxt/kit'
+import { consola } from 'consola'
 
 export function useLogger(tag: string) {
-    const logger = _useLogger(tag)
+    const logger = consola.withTag(tag)
     logger.level = process.dev ? 4 : 3
 
     return logger

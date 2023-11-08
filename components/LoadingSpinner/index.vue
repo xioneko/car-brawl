@@ -1,9 +1,9 @@
 <template>
     <dialog
         ref="loadingSpinner"
-        class="absolute bg-transparent outline-none backdrop:bg-neutral-50/90"
+        class="fixed inset-0 m-0 h-fit max-h-screen w-fit max-w-full overflow-visible bg-transparent p-0 outline-none backdrop-blur-sm"
     >
-        <div class="h-32 w-32">
+        <div class="flex h-screen w-screen items-center justify-center">
             <component
                 :is="
                     [
@@ -14,7 +14,6 @@
                         LoadingSpinnerRotateSquare2,
                     ].at(_.random(0, 4))
                 "
-                class="absolute left-8 top-8"
             />
         </div>
     </dialog>

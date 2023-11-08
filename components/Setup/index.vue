@@ -86,7 +86,7 @@ import { BulletStyle, CarStyle, Theme } from '~/models/config'
 import {
     RoomType,
     type RevAccount,
-    type UserConfig,
+    UserConfig,
     type PostBuyTicket,
 } from '~/models'
 
@@ -115,12 +115,11 @@ const flavor = {
     bullet: ref(BulletStyle.presets.default),
 }
 const logger = useLogger('Setup')
-const userConf = useUserConfigStore()
-const account = useAccountStore()
+const account = useAccount()
 const toast = Toast.useToast()
 
 const emit = defineEmits<{
-    onFinish: [gameMode: RoomType, accessToken?: string]
+    onFinish: [gameMode: RoomType, userConf: UserConfig, accessToken?: string]
 }>()
 
 function nextStep() {
@@ -136,17 +135,17 @@ function prevStep() {
 }
 
 async function joinGame() {
-    userConf.$patch({
-        carStyle: flavor.car.value,
-        bulletStyle: flavor.bullet.value,
-        theme: flavor.theme.value,
-        name: name.value,
-    })
+    const userConf = new UserConfig(
+        name.value,
+        flavor.theme.value,
+        flavor.car.value,
+        flavor.bullet.value,
+    )
 
     switch (gameMode.value) {
         case RoomType.SingleRoom:
         case RoomType.FunRoom:
-            emit('onFinish', gameMode.value)
+            emit('onFinish', gameMode.value, userConf)
             break
         case RoomType.CompetitiveRoom: {
             try {
@@ -173,7 +172,7 @@ async function joinGame() {
 
                 if (accessToken) {
                     joinStatus.value = 'success'
-                    emit('onFinish', gameMode.value, accessToken)
+                    emit('onFinish', gameMode.value, userConf, accessToken)
                     toast.success('Ticket bought successfully!')
                 } else {
                     joinStatus.value = 'error'

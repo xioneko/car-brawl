@@ -51,11 +51,9 @@ import { type PostLogin } from '~/models'
 const loginStatus = ref<AsyncDataRequestStatus>('idle')
 const logger = useLogger('Index')
 const toast = Toast.useToast()
-const account = useAccountStore()
-
+const account = useAccount()
 onMounted(() => {
-    preloadRouteComponents('/play')
-    account.$reset()
+    // account.$reset()
 })
 
 async function connectMetamask() {
@@ -69,7 +67,8 @@ async function connectMetamask() {
             method: 'eth_requestAccounts',
         })
         const revAddr = createRevAddrFromEth(ethAddr)
-        account.$patch({ value: { ethAddr, revAddr } })
+        // account.$patch({ value: { ethAddr, revAddr } })
+        account.value = { ethAddr, revAddr }
 
         try {
             loginStatus.value = 'pending'

@@ -49,20 +49,21 @@
 import _ from 'lodash'
 import dayjs from 'dayjs'
 import { Car, isCompetitiveGameState, GameState } from '~/models/game'
+import { Theme } from '~/models'
 
 const logger = useLogger('Playground')
 
-const account = useAccountStore()
-const userConf = useUserConfigStore()
+const account = useAccount()
 const canvas = ref<HTMLCanvasElement | null>()
 const localCar = ref<Car>()
 
 const props = defineProps<{
     gameState?: GameState
+    theme?: Theme
 }>()
 
 const styles = {
-    theme: userConf.theme,
+    theme: props.theme ?? Theme.presets.default,
     sceneTranslate: computed(() => {
         if (!props.gameState) return
 

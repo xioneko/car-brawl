@@ -10,14 +10,17 @@
                 <Pending @on-finish="status = GameStatus.Playing" />
             </PrettyContainer>
         </div>
-        <div v-else-if="status === GameStatus.Playing" class="">
-            <Playground class="h-screen" :game-state="gameState" />
+        <div v-else-if="status === GameStatus.Playing">
+            <Playground
+                class="h-screen"
+                :game-state="gameState"
+                :theme="theme"
+            />
         </div>
         <div v-else-if="status === GameStatus.Ended">
-            <!-- <Ending @on-finish="status = GameStatus.Setup" /> -->
+            <Ending @on-finish="status = GameStatus.Setup" />
         </div>
-        <User class="absolute right-4 top-4" />
-        <Popup />
+        <User class="fixed right-4 top-4" />
     </div>
 </template>
 
@@ -38,6 +41,7 @@ import {
     createRoomOptions,
     RegularOptions,
     type RevAccount,
+    Theme,
 } from '~/models'
 
 const logger = useLogger('play')
@@ -52,9 +56,10 @@ const status = ref<GameStatus>(GameStatus.Setup)
 const gameState = ref<GameState>()
 const socket = useSocket()
 const ctrl = useCtrlSample()
-const account = useAccountStore()
-const userConf = useUserConfigStore()
+const account = useAccount()
+const playerId = account.playerId
 const toast = Toast.useToast()
+const theme = ref<Theme>(Theme.presets.default)
 
 let sendCtrl: NodeJS.Timeout | undefined
 watch(
@@ -63,7 +68,7 @@ watch(
         if (curr === GameStatus.Playing) {
             sendCtrl = setInterval(() => {
                 // logger.debug('Send ctrl to server:\n', ctrl)
-                socket.volatile.emit('carCtrl', account.playerId, ctrl)
+                socket.volatile.emit('carCtrl', playerId, ctrl)
             }, 1000 / 128)
         } else {
             clearInterval(sendCtrl)
@@ -79,7 +84,13 @@ onUnmounted(() => {
 
 provide(socketKey, socket)
 
-function startup(gameMode: RoomType, accessToken?: string) {
+function startup(
+    gameMode: RoomType,
+    userConf: UserConfig,
+    accessToken?: string,
+) {
+    theme.value = userConf.theme
+
     socket.on('joinStatus', (success, error) => {
         if (success) {
             socket.on('stateSync', (state) => {
@@ -103,7 +114,7 @@ function startup(gameMode: RoomType, accessToken?: string) {
             RoomType.CompetitiveRoom,
             new RegularOptions(
                 account.value as RevAccount,
-                userConf.$state,
+                userConf,
                 accessToken,
             ),
         )
@@ -113,7 +124,7 @@ function startup(gameMode: RoomType, accessToken?: string) {
             status.value = GameStatus.Ended
         })
     } else {
-        const roomOpts = createRoomOptions(account.value, userConf.$state)
+        const roomOpts = createRoomOptions(account.value, userConf)
         socket.emit('joinRoom', account.playerId, gameMode, roomOpts)
     }
 }
