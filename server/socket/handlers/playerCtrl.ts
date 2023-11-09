@@ -37,10 +37,10 @@ export function handlePlayerCtrl(
     }
 
     /* -------------------------------- Direction ------------------------------- */
-    if (ctrl.left) {
+    if (ctrl.left && self.velocity.lengthSquare > 0) {
         self.angleVelocity -= (self.power > 0 ? 1 : -1) * Constant.TurnSpeed
     }
-    if (ctrl.right) {
+    if (ctrl.right && self.velocity.lengthSquare > 0) {
         self.angleVelocity += (self.power > 0 ? 1 : -1) * Constant.TurnSpeed
     }
 

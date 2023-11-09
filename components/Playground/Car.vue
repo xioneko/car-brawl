@@ -58,10 +58,7 @@ let track: NodeJS.Timeout | undefined
 onMounted(() => {
     track = setInterval(() => {
         const { angleVelocity, power } = props.state
-        if (
-            Math.abs(angleVelocity) > 0.001 ||
-            _.inRange(power, Constant.MinPower, Constant.MaxPower)
-        ) {
+        if (Math.abs(angleVelocity) > 0.001 || Math.abs(power) > 0.005) {
             emit(
                 'onTrack',
                 props.state.direction,

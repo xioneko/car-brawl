@@ -9,6 +9,10 @@ export class Vec2 {
         this.x = x
         this.y = y
     }
+
+    get lengthSquare() {
+        return this.x ** 2 + this.y ** 2
+    }
 }
 
 export enum CarStatus {

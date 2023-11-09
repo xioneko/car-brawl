@@ -24,7 +24,9 @@ export class CarBrawlServer {
     ) {
         this.io = new Server(port, {
             cors: {
-                origin: `http://62.234.31.104:${process.env.PORT}`,
+                origin: `http://${
+                    process.dev ? 'localhost' : process.env.SERVER_IP
+                }:${process.env.PORT}`,
             },
         })
 
