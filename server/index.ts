@@ -11,7 +11,7 @@ if (process.dev) {
     import('#internal/nitro/entries/nitro-dev')
 } else {
     // @ts-expect-error
-    import('#internal/nitro/entries/vercel')
+    import('#internal/nitro/entries/node-server')
 }
 
 const port = parseInt(process.env.SOCKET_PORT!)
@@ -26,35 +26,37 @@ server.hostGame()
     const storage = useStorage()
     const rhoAssets = await storage.getKeys('assets/contracts')
 
-    const deployIds = await Promise.all(
-        _.map(
-            await storage.getItems(rhoAssets),
-            async ({ key: rhoAsset, value: contract }) => {
-                const deployRequest = await createSysDeployReq(
-                    contract!.toString(),
-                )
-                await sendDeploy(deployRequest)
-
-                logger.success(`Deployed ${rhoAsset.split(':').at(-1)}`)
-                return deployRequest.signature
-            },
-        ),
-    )
-
-    await propose()
-
-    await Promise.all(
-        _.map(deployIds, async (id) => {
-            await checkDeployStatus(id, (errored, systemDeployError) => {
-                if (errored || systemDeployError)
-                    throw new Error(
-                        `Deploy failed: ${
-                            systemDeployError ?? 'check rnode logs'
-                        }`,
+    try {
+        const deployIds = await Promise.all(
+            _.map(
+                await storage.getItems(rhoAssets),
+                async ({ key: rhoAsset, value: contract }) => {
+                    const deployRequest = await createSysDeployReq(
+                        contract!.toString(),
                     )
-            })
-        }),
-    )
+                    await sendDeploy(deployRequest)
 
-    logger.success('Propose success!')
+                    logger.success(`Deployed ${rhoAsset.split(':').at(-1)}`)
+                    return deployRequest.signature
+                },
+            ),
+        )
+
+        await propose()
+
+        await Promise.all(
+            _.map(deployIds, async (id) => {
+                await checkDeployStatus(id, (errored, systemDeployError) => {
+                    if (errored || systemDeployError)
+                        throw new Error(
+                            `Deploy failed: ${
+                                systemDeployError ?? 'check rnode logs'
+                            }`,
+                        )
+                })
+            }),
+        )
+
+        logger.success('Propose success!')
+    } catch {}
 })()
