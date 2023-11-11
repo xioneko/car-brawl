@@ -7,10 +7,10 @@ import { RoomType } from '~/models/room'
 const logger = useLogger('Server')
 
 if (process.dev) {
-    // @ts-expect-error
+    // @ts-ignore
     import('#internal/nitro/entries/nitro-dev')
 } else {
-    // @ts-expect-error
+    // @ts-ignore
     import('#internal/nitro/entries/node-server')
 }
 
@@ -22,6 +22,8 @@ const server = new CarBrawlServer(port, {
     [RoomType.SingleRoom]: SingleRoom,
 })
 server.hostGame()
+server.startStateSyncLoop()
+server.startClearConnectionLoop()
 ;(async function initRchainContracts() {
     const storage = useStorage()
     const rhoAssets = await storage.getKeys('assets/contracts')
@@ -45,7 +47,7 @@ server.hostGame()
         await propose()
 
         await Promise.all(
-            _.map(deployIds, async (id) => {
+            _.map(deployIds, async (id: string) => {
                 await checkDeployStatus(id, (errored, systemDeployError) => {
                     if (errored || systemDeployError)
                         throw new Error(

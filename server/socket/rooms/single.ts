@@ -6,8 +6,7 @@ import {
     handlePlayerLeave,
     realtimeUpdate,
 } from '../handlers'
-import { RoomType, type RoomOptions } from '~/models/room'
-import { CarCtrl, GameState } from '~/models/game'
+import { RoomType, type RoomOptions, CarCtrl, GameState } from '~/models'
 
 const logger = useLogger(RoomType.SingleRoom)
 
@@ -43,7 +42,6 @@ export class SingleRoom extends Room<GameState> {
     }
 
     onLeave(player: string) {
-        logger.info(`${player} leave the room ${this.roomId}`)
         handlePlayerLeave(player, this.userData, this.state)
     }
 

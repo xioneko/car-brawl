@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col text-white">
-        <div class="font-narnialone pl-8 pt-8 text-5xl">Car Brawl</div>
+        <div class="pl-8 pt-8 font-narnialone text-5xl">Car Brawl</div>
         <div
             v-if="progress === SetupProgress.ChooseFlavor"
-            class="font-just_for_fun flex h-full flex-col items-center justify-center gap-7 text-5xl text-white"
+            class="flex h-full flex-col items-center justify-center gap-7 font-just_for_fun text-5xl text-white"
         >
             <div
                 v-for="(presets, category) in Flavors"
@@ -20,20 +20,8 @@
         </div>
         <div
             v-else-if="progress === SetupProgress.Startup"
-            class="font-just_for_fun flex h-full flex-col items-center justify-center gap-7 text-5xl"
+            class="flex h-full flex-col items-center justify-center gap-7 font-just_for_fun text-5xl"
         >
-            <!-- For Test -->
-            <!-- <select
-                id="guest-id"
-                v-model="guestId"
-                name="guestId"
-                :disabled="account.type === AccountType.Registered"
-            >
-                <option disabled selected value="">Mock a guest ID</option>
-                <option v-for="n in 5" :key="n">
-                    {{ `text_${_.repeat(n.toString(), 5)}` }}
-                </option>
-            </select> -->
             <div class="flex items-center gap-12">
                 <label for="name" class="w-32 text-right">Name</label>
                 <input
@@ -41,14 +29,14 @@
                     v-model="name"
                     type="text"
                     maxlength="11"
-                    class="w-56 rounded-md border-2 border-white/80 bg-transparent px-5 py-2 text-center text-4xl outline-none selection:bg-white/25"
+                    class="w-60 rounded-md border-2 border-white/80 bg-transparent px-5 py-2 text-center text-4xl outline-none selection:bg-white/25"
                 />
             </div>
             <div class="flex gap-12">
                 <div class="w-32 text-right">Mode</div>
                 <SetupSelect
                     v-model="gameMode"
-                    class="w-56"
+                    class="w-60"
                     :options="
                         account.type === AccountType.Guest
                             ? _.omit(GameModes, ['Competitive'])
@@ -57,7 +45,7 @@
                 />
             </div>
         </div>
-        <div class="font-just_for_fun flex justify-between px-7 pb-3 text-4xl">
+        <div class="flex justify-between px-7 pb-3 font-just_for_fun text-4xl">
             <button
                 class="disabled:text-white/25"
                 :disabled="progress === SetupProgress.ChooseFlavor"
@@ -79,8 +67,6 @@
 
 <script lang="ts" setup>
 import _ from 'lodash'
-// @ts-ignore
-import * as Toast from 'vue-toastification/dist/index.mjs'
 import type { AsyncDataRequestStatus } from 'nuxt/dist/app/composables/asyncData'
 import { BulletStyle, CarStyle, Theme } from '~/models/config'
 import {
@@ -116,7 +102,7 @@ const flavor = {
 }
 const logger = useLogger('Setup')
 const account = useAccount()
-const toast = Toast.useToast()
+const toast = useToast()
 
 const emit = defineEmits<{
     onFinish: [gameMode: RoomType, userConf: UserConfig, accessToken?: string]
@@ -189,7 +175,7 @@ async function joinGame() {
 }
 </script>
 
-<style>
+<style scoped>
 button:hover:not(:disabled) {
     text-shadow: 0 0 4px #fff;
 }
