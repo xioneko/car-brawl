@@ -1,12 +1,13 @@
 import { type CarCtrl, GameState } from './game'
 import { type RoomOptions, type PendingProgress, RoomType } from './room'
 
-export type EventsMap<T> = Record<keyof T, (...args: any[]) => any>
+export type EventsMap<T> = {
+    [ev in keyof T]: (...args: any[]) => any
+}
 
 export type EventNames<T> = keyof EventsMap<T> & (string | symbol)
 
 export interface ServerEvents {
-    joinStatus: (success: boolean, error?: string) => void
     stateSync: (state: GameState) => void
 }
 
@@ -20,5 +21,5 @@ export interface ClientEvents {
 export interface CompetitiveServerEvents extends ServerEvents {
     progressUpdate: (progress: PendingProgress) => void
     startGame: () => void
-    endGame: (rewardRes: Record<string, number>) => void
+    endGame: () => void
 }

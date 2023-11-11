@@ -2,7 +2,8 @@ import _ from 'lodash'
 import { consola } from 'consola'
 import type { CarCtrl } from '~/models/game'
 
-const logger = useLogger('Control')
+const logger = consola.withTag('Control')
+logger.level = process.dev ? 4 : 3
 
 export const useCtrlSample = () => {
     const ctrl = reactive<CarCtrl>({
@@ -47,11 +48,9 @@ export const useCtrlSample = () => {
         }
     }
 
-    onMounted(() => {
-        addEventListener('keydown', keyActive)
-        addEventListener('keyup', keyInactive)
-        addEventListener('visibilitychange', pageInactive)
-    })
+    addEventListener('keydown', keyActive)
+    addEventListener('keyup', keyInactive)
+    addEventListener('visibilitychange', pageInactive)
 
     onUnmounted(() => {
         removeEventListener('keydown', keyActive)

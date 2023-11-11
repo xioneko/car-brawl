@@ -1,11 +1,12 @@
-contract @"Transfer"(deployer, @fromAddr, @toAddr, @amount, return) = {
+contract @"Transfer"(@fromAddr, @toAddr, @amount, return) = {
   new rl(`rho:registry:lookup`), RevVaultCh in {
     rl!(`rho:rchain:revVault`, *RevVaultCh) |
     for (@(_, RevVault) <- RevVaultCh) {
-      new vaultCh, vaultTo, revVaultkeyCh in {
+      new vaultCh, vaultTo, revVaultkeyCh,
+        deployerId(`rho:rchain:deployerId`) in {
         @RevVault!("findOrCreate", fromAddr, *vaultCh) |
         @RevVault!("findOrCreate", toAddr, *vaultTo) |
-        @RevVault!("deployerAuthKey", *deployer, *revVaultkeyCh) |
+        @RevVault!("deployerAuthKey", *deployerId, *revVaultkeyCh) |
         for (@vault <- vaultCh; key <- revVaultkeyCh; _ <- vaultTo) {
           match vault {
             (true, vault) => {

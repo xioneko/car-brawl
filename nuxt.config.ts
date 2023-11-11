@@ -10,37 +10,17 @@ export default defineNuxtConfig({
     imports: {
         dirs: ['stores'],
     },
-    modules: ['@nuxtjs/tailwindcss'],
+    css: ['~/assets/less/main.less'],
+    modules: ['@pinia/nuxt'],
 
     nitro: {
         entry: '~/server/index.ts',
-        serverAssets: [
-            {
-                baseName: 'contracts',
-                dir: '../contracts',
-            },
-        ],
     },
 
-    tailwindcss: {
-        config: {
-            theme: {
-                fontFamily: {
-                    narnialone: ['Narnialone', 'sans-serif'],
-                    aller: ['Aller_Std_It', 'sans-serif'],
-                    just_for_fun: ['just_for_fun', 'sans-serif'],
-                },
-            },
-            content: [
-                './app.vue',
-                './components/**/*.{vue,ts}',
-                './layouts/**/*.vue',
-                './pages/**/*.vue',
-                './composables/**/*.ts',
-                './plugins/**/*.ts',
-                './utils/**/*.ts',
-                './nuxt.config.ts',
-            ],
+    postcss: {
+        plugins: {
+            tailwindcss: {},
+            autoprefixer: {},
         },
     },
 })

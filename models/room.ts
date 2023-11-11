@@ -1,9 +1,4 @@
-import {
-    isRevAccount,
-    isGuestAccount,
-    type GuestAccount,
-    type RevAccount,
-} from './account'
+import { type RevAccount, type GuestAccount, isRevAccount } from './account'
 import type { UserConfig } from './config'
 
 export enum RoomType {
@@ -20,8 +15,8 @@ export class GuestOptions implements RoomOptions {
     account: GuestAccount
     userConfig: UserConfig
     constructor(account: GuestAccount, config: UserConfig) {
-        this.account = { ...account }
-        this.userConfig = { ...config }
+        this.account = account
+        this.userConfig = config
     }
 }
 
@@ -30,8 +25,8 @@ export class RegularOptions implements RoomOptions {
     userConfig: UserConfig
     accessToken?: string
     constructor(account: RevAccount, config: UserConfig, accessToken?: string) {
-        this.account = { ...account }
-        this.userConfig = { ...config }
+        this.account = account
+        this.userConfig = config
         this.accessToken = accessToken
     }
 }
@@ -50,12 +45,9 @@ export function createRoomOptions(
     userConf: UserConfig,
     accessToken?: string,
 ) {
-    switch (true) {
-        case isRevAccount(account):
-            return new RegularOptions(account, userConf, accessToken)
-        case isGuestAccount(account):
-            return new GuestOptions(account, userConf)
-        default:
-            throw new Error('Unknown account type')
+    if (isRevAccount(account)) {
+        return new RegularOptions(account, userConf, accessToken)
+    } else {
+        return new GuestOptions(account, userConf)
     }
 }

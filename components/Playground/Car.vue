@@ -37,7 +37,8 @@ import _ from 'lodash'
 import { consola } from 'consola'
 import { Car, CarStatus, Constant } from '~/models/game'
 
-const logger = useLogger('Car')
+const logger = consola.withTag('Car')
+logger.level = process.dev ? 4 : 3
 
 const props = defineProps<{
     state: Car
@@ -58,7 +59,10 @@ let track: NodeJS.Timeout | undefined
 onMounted(() => {
     track = setInterval(() => {
         const { angleVelocity, power } = props.state
-        if (Math.abs(angleVelocity) > 0.001 || Math.abs(power) > 0.005) {
+        if (
+            Math.abs(angleVelocity) > 0.001 ||
+            _.inRange(power, Constant.MinPower, Constant.MaxPower)
+        ) {
             emit(
                 'onTrack',
                 props.state.direction,

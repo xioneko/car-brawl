@@ -1,7 +1,7 @@
 <template>
     <div>
         <div
-            class="background fixed h-screen w-screen"
+            class="background fixed h-screen"
             :style="{ backgroundColor: styles.theme.background }"
         ></div>
         <div
@@ -48,22 +48,25 @@
 <script lang="ts" setup>
 import _ from 'lodash'
 import dayjs from 'dayjs'
+import { consola } from 'consola'
 import { Car, isCompetitiveGameState, GameState } from '~/models/game'
-import { Theme } from '~/models'
+import { useAccountStore } from '~/stores/account'
+import { useUserConfigStore } from '~/stores/userConfig'
 
-const logger = useLogger('Playground')
+const logger = consola.withTag('Playground')
+logger.level = process.dev ? 4 : 3
 
-const account = useAccount()
+const account = useAccountStore()
+const userConf = useUserConfigStore()
 const canvas = ref<HTMLCanvasElement | null>()
 const localCar = ref<Car>()
 
 const props = defineProps<{
     gameState?: GameState
-    theme?: Theme
 }>()
 
 const styles = {
-    theme: props.theme ?? Theme.presets.default,
+    theme: userConf.theme,
     sceneTranslate: computed(() => {
         if (!props.gameState) return
 

@@ -1,3 +1,4 @@
+import { useLogger } from '@nuxt/kit'
 import _ from 'lodash'
 import type { RoomOptions, RoomUserData } from '~/models/room'
 import { Car, GameState } from '~/models/game'

@@ -73,6 +73,7 @@
     |奖励|有|—|—|
 
 -   一种游戏模式对应服务端一种 Room 实现，当 Room 中的玩家数量达到最大限制时，新的 Room 会被创建
+-   除非玩家手动退出房间，或房间中已经没有任何玩家，否则服务端将保留玩家的游戏状态，当玩家重新加入房间时会自动恢复
 
 ### Rchain
 
@@ -83,17 +84,17 @@
 ### REV System
 
 -   初次启动时，固定数量的 REV 会被供应到 RChain 网络上。
--   对于新注册的玩家，会通过 ["Faucet"](./contracts/faucet.rho) 合约给予一定数量的 REV。
--   玩家若想参与竞技模式，需要通过 "BuyTicket" 合约购买“入场券”，游戏结束后将根据玩家积分排名给予 REV 奖励，具体规则见 ["CarBrawl"](./contracts/game.rho) 合约。
+-   对于新注册的玩家，会通过智能合约 ["Faucet"](./contracts/faucet.rho) 给予一定数量的 REV。
+-   玩家若想参与竞技模式，则需要消耗特定数量的 REV。这些 REV 的一部分被用来预付服务器代理 Deploy 的费用，另一部分则用于对战结束后的奖励分配 (依据积分排名)，具体规则见智能合约 ["CarBrawl"](./contracts/game.rho)。
 -   玩家若没有足够的 REV 参与对战，则可以通过私下交易的形式与从其他玩家处获取（游戏平台提供了 REV 转账功能，见智能合约 ["Transfer"](./contracts/transfer.rho)）。
 
 ## 🚩 Roadmap
 - [x] 实现 Rchain HTTP client
 - [x] 实现基本的智能合约
 - [x] 实现基本的游戏服务器 & 客户端
-- [x] 连接 Metamask 钱包和完善账户功能
-- [x] 在竞技模式中加入 Rchain 交互，实现 REV 系统
-- [ ] 实现基本的界面 UI
+- [ ] 连接 Metamask 钱包和完善账户功能
+- [ ] 在竞技模式中加入 Rchain 交互，实现 REV 系统
+- [ ] 美化 UI
 - [ ] ...
 
 ## 🛠️ Development
@@ -104,12 +105,6 @@
 
 [Install Node.js on Linux](https://github.com/nodesource/distributions#installation-instructions)
 
-### Docker
-
-[Install Docker Desktop on Windows](https://docs.docker.com/desktop/install/windows-install/)
-
-[Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
-
 
 ### VS Code
 
@@ -119,7 +114,7 @@
 
 ```bash
 # 启用 pnpm
-corepack enable pnpm # 需要管理员权限
+corepack enable pnpm
 
 # 安装依赖
 pnpm install
@@ -127,21 +122,31 @@ pnpm install
 
 ### Run & Build
 ```bash
-# 运行 Rnode
-docker compose up # 在 Windows 上需要打开 Docker desktop，Ubuntu 上开启 docker service
-
 # 开发模式
-pnpm dev # 新建一个终端。访问 http://localhost:<port>，其中 <port> 在 .env 文件中定义
-
-# 终止（先按下 Ctrl+C）
-docker compose down
+pnpm dev # http://localhost:<port>，其中 <port> 在 .env 文件中定义
 
 # 构建
 pnpm build # 输出目录为 .output
 ```
 
-> **Warning**
-> - Rchain 网络的建立需要一定时间，等 docker 运行日志中出现 "Approved state for block Block" 时再执行 pnpm dev
+### Run rnode
+
+[Install Docker Desktop on Windows](https://docs.docker.com/desktop/install/windows-install/)
+
+[Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+
+```bash
+# 运行 Windows Docker Desktop
+# 或在 Ubuntu 上开启 docker service
+sudo service docker start
+
+# 启动
+docker compose up
+
+# 终止
+docker compose down
+
+```
 
 ## Contribute
 

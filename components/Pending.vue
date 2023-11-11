@@ -1,12 +1,5 @@
 <template>
-    <div
-        class="font-just_for_fun flex h-full w-full flex-col items-center justify-center text-white"
-    >
-        <div class="waiting-animation text-left text-6xl after:absolute">
-            Waiting players
-        </div>
-        <div class="mt-8 text-7xl">{{ progress }}</div>
-    </div>
+    <div>Waiting players: {{ progress }}</div>
 </template>
 
 <script lang="ts" setup>
@@ -38,26 +31,4 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-::after {
-    animation: waiting 1s linear infinite;
-}
-
-@keyframes waiting {
-    100% {
-        content: '';
-    }
-
-    25% {
-        content: '·';
-    }
-
-    50% {
-        content: '··';
-    }
-
-    75% {
-        content: '···';
-    }
-}
-</style>
+<style></style>

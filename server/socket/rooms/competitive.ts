@@ -1,5 +1,4 @@
-import crypto from 'node:crypto'
-import _ from 'lodash'
+import { useLogger } from '@nuxt/kit'
 import type { Server } from 'socket.io'
 import ms, { StringValue } from 'ms'
 import { Room } from '../Room'
@@ -16,9 +15,7 @@ import {
     CompetitiveServerEvents,
     CarCtrl,
     RoomOptions,
-    RegularOptions,
 } from '~/models'
-import { dataAtName, propose, sendDeploy } from '~/server/rchain/http'
 
 const logger = useLogger(RoomType.CompetitiveRoom)
 
@@ -38,8 +35,9 @@ export class CompetitiveRoom extends Room<
             server,
             RoomType.CompetitiveRoom,
             new CompetitiveGameState(CompetitiveRoom.duration),
-            process.dev ? 2 : 4,
+            process.dev ? 3 : 4,
         )
+
         logger.info(`Room ${this.roomId} Created`)
     }
 
@@ -59,16 +57,8 @@ export class CompetitiveRoom extends Room<
             realtimeUpdate(this.userData, this.state)
             this.state.timeLeft = this.endTime - Date.now()
             if (this.state.timeLeft <= 0) {
-                // TODO: 处理玩家积分相同的情况
-                const pointsOfPlayer = _.fromPairs(
-                    _.map(Array.from(this.userData.keys()), (player) => [
-                        player,
-                        this.state.cars.get(player)?.points ?? 0,
-                    ]),
-                )
-                this.endGame(pointsOfPlayer, (rewardRes) => {
-                    this.send('endGame', this.roomId, rewardRes)
-                })
+                this.send('endGame', this.roomId)
+                // TODO: Handle end game
                 this.gameStatus = 'ended'
             }
             this.requestSync()
@@ -76,26 +66,10 @@ export class CompetitiveRoom extends Room<
     }
 
     onAuth(
-        options: RegularOptions,
+        options: RoomOptions,
     ): [success: boolean, error?: string | undefined] {
-        const { accessToken } = options
-        if (accessToken) {
-            try {
-                if (
-                    CompetitiveRoom.verifyAccessToken(
-                        accessToken,
-                        options.account.revAddr,
-                    )
-                ) {
-                    return [true]
-                } else {
-                    return [false, 'Invalid access token']
-                }
-            } catch {
-                return [false, 'Invalid access token']
-            }
-        }
-        return [false, 'Empty access token']
+        // TODO: 验证 “入场券”，由 Deploy 返回
+        return [true]
     }
 
     onJoin(player: string, options: RoomOptions, rejoin: boolean) {
@@ -113,11 +87,8 @@ export class CompetitiveRoom extends Room<
         const joinedCnt = this.userData.size
         if (joinedCnt === this.maxPlayers) {
             this.send('startGame', this.roomId)
-            this.initGame(Array.from(this.userData.keys()))
-
             this.gameStatus = 'running'
             this.endTime = Date.now() + ms(CompetitiveRoom.duration)
-
             this.requestSync()
         } else {
             this.send('progressUpdate', this.roomId, {
@@ -137,77 +108,5 @@ export class CompetitiveRoom extends Room<
 
     onDispose() {
         logger.info(`Room ${this.roomId} Disposed`)
-    }
-
-    private async initGame(players: string[]) {
-        try {
-            const deploy = await createSysDeployReq(
-                `@"CreateGame"!("${this.roomId}") |
-                 @["${this.roomId}", "joinGame"]!(${JSON.stringify(
-                     players,
-                 )}, Nil)`,
-            )
-            await sendDeploy(deploy)
-            await propose()
-            logger.info(`Initialize game for room ${this.roomId}`)
-        } catch (error) {
-            logger.error(`Initialize game failed:`, error)
-        }
-    }
-
-    private async endGame(
-        pointsOfPlayer: Record<string, number>,
-        onFinish: (rewardOfPlayer: Record<string, number>) => void,
-    ) {
-        try {
-            const deploy = await createSysDeployReq(
-                `new result(\`rho:rchain:deployId\`), deployer(\`rho:rchain:deployerId\`) in {
-                    @["${this.roomId}", "endGame"]!(${JSON.stringify(
-                        pointsOfPlayer,
-                    )}, Nil) |
-                    @["${this.roomId}", "reward"]!(*deployer, *result)
-                }`,
-            )
-            await sendDeploy(deploy)
-            await propose()
-
-            const deployId = deploy.signature
-            await checkDeployStatus(deployId, (errored, systemDeployError) => {
-                throw new Error(
-                    `Deploy Execution Error: ${
-                        systemDeployError ?? 'check the rnode log'
-                    }.`,
-                )
-            })
-            const rewardRes = await dataAtName<[string, number][]>(deployId)
-            logger.info(`End game for room ${this.roomId}`)
-            onFinish(_.fromPairs(rewardRes))
-        } catch (error) {
-            logger.error('End game failed:', error)
-        }
-    }
-
-    static createAccessToken(revAddr: string) {
-        const iv = crypto.randomBytes(16)
-        const cipher = crypto.createCipheriv(
-            'aes-256-ctr',
-            process.env.ACCESS_TOKEN_KEY!,
-            iv,
-        )
-        const encrypted = cipher.update(revAddr, 'utf-8', 'hex')
-        return iv.toString('hex') + encrypted + cipher.final('hex')
-    }
-
-    static verifyAccessToken(accessToken: string, revAddr: string) {
-        const iv = accessToken.slice(0, 32)
-        const data = accessToken.slice(32)
-        const decipher = crypto.createDecipheriv(
-            'aes-256-ctr',
-            process.env.ACCESS_TOKEN_KEY!,
-            Buffer.from(iv, 'hex'),
-        )
-        const decrypted = decipher.update(data, 'hex', 'utf-8')
-        const content = decrypted + decipher.final('utf-8')
-        return content === revAddr
     }
 }

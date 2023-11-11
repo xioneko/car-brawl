@@ -12,7 +12,8 @@
 import { consola } from 'consola'
 import { Bullet } from '~/models/game'
 
-const logger = useLogger('Bullet')
+const logger = consola.withTag('Bullet')
+logger.level = process.dev ? 4 : 3
 
 const props = defineProps<{
     state: Bullet

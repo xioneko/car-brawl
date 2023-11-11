@@ -1,0 +1,6 @@
+new log(`rho:io:stdout`) in {
+    @["id", "winPoints"]!("player1", 23, *log) |
+    @["id", "winPoints"]!("player3", 18, *log) |
+    @["id", "winPoints"]!("player4", 18, *log) |
+    @["id", "winPoints"]!("player6", 18, *log)
+}

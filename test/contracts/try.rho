@@ -1,10 +1,3 @@
-new log(`rho:io:stdout`), Ch in {
-  Ch!(1) |
-  contract @"AAAA"(return) = {
-    for (_ <- Ch) {
-      log!("Recive") |
-      return!("Receive")
-    }
-  } |
-  @"AAAA"!(Nil)
+new log(`rho:io:stdout`) in {
+  log!(30000*(20 + 6 * 1)/(20*3+3*3*3 - 3*3))
 }

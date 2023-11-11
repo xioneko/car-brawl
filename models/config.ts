@@ -14,10 +14,7 @@ export namespace Theme {
     export const presets = {
         default: new Theme(Color.hsl(0, 0, 95), Color.hsl(0, 0, 90)),
         dark: new Theme(Color.hsl(0, 0, 15), Color.hsl(0, 0, 20)),
-        Blue: new Theme(Color.hsl(188, 100, 79), Color.hsl(185, 100, 88)),
-        Pink: new Theme(Color.hsl(330, 100, 76), Color.hsl(330, 100, 88)),
-        Green: new Theme(Color.hsl(106, 100, 74), Color.hsl(120, 100, 90)),
-        Orange: new Theme(Color.hsl(28, 100, 61), Color.hsl(30, 100, 88)),
+        
     }
 }
 
@@ -49,9 +46,9 @@ export namespace CarStyle {
             Color.hsl(0, 0, 25).alpha(0.25),
         ),
         red: new CarStyle(
-            Color.hsl(0, 100, 50).alpha(0.25),
-            Color.hsl(0, 100, 50).alpha(0.25),
-            Color.hsl(0, 100, 50).alpha(0.25),
+            Color.hsl(0, 0, 90),
+            Color.hsl(0, 0, 80),
+            Color.hsl(0, 0, 70),
             Color.hsl(0, 100, 50).alpha(0.25),
         ),
     }

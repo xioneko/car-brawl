@@ -1,4 +1,6 @@
 import _ from 'lodash'
+import { useLogger } from '@nuxt/kit'
+
 import {
     CarCtrl,
     Bullet,
@@ -30,17 +32,17 @@ export function handlePlayerCtrl(
         car.velocity = new Vec2(0, 0)
     }
     if (self.status === CarStatus.DEATH) {
-        // logger.debug(`${self.name} is to be reborn`)
+        logger.debug(`${self.name} is to be reborn`)
         reborn(self)
         self.lastRebirthAt = Date.now()
         self.status = CarStatus.INVINCIBLE
     }
 
     /* -------------------------------- Direction ------------------------------- */
-    if (ctrl.left && self.velocity.lengthSquare > 0) {
+    if (ctrl.left) {
         self.angleVelocity -= (self.power > 0 ? 1 : -1) * Constant.TurnSpeed
     }
-    if (ctrl.right && self.velocity.lengthSquare > 0) {
+    if (ctrl.right) {
         self.angleVelocity += (self.power > 0 ? 1 : -1) * Constant.TurnSpeed
     }
 
