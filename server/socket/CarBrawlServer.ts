@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Server } from 'socket.io'
-import { useLogger } from '@nuxt/kit'
+import { SystemRevAddr, sendDeploy } from '../rchain/http'
 import { Room } from './Room'
 import { ClientEvents, ServerEvents } from '~/models/events'
 import { RoomType } from '~/models/room'
@@ -32,10 +32,10 @@ export class CarBrawlServer {
             logger.info(`Client ${socket.id} Connected`)
 
             socket.on('joinRoom', (player, type, options) => {
-                logger.debug(`Receive "joinRoom" event from ${player}`)
+                // logger.debug(`Receive "joinRoom" event from ${player}`)
 
                 let room = this.roomOfPlayer.get(player)
-                const rejoin = !_.isNil(room)
+                const rejoin = !_.isNil(room) && room.type === type
                 if (!rejoin) {
                     const existRoom = _.find(
                         Array.from(this.roomOfPlayer.values()),
@@ -54,16 +54,29 @@ export class CarBrawlServer {
                         const RoomCtor = roomRegistry[type]!
                         room = new RoomCtor(this.io)
                     }
-                    this.roomOfPlayer.set(player, room)
-                    this.rooms.add(room)
+
+                    const [success, error] = room!.onAuth(options)
+                    if (success) {
+                        socket.emit('joinStatus', true)
+
+                        this.roomOfPlayer.set(player, room!)
+                        this.rooms.add(room!)
+                    } else {
+                        socket.emit('joinStatus', false, error)
+                        return
+                    }
+                } else {
+                    socket.emit('joinStatus', true)
                 }
+
                 socket.join(room!.roomId)
+                room!.onJoin(player, options, rejoin)
+
                 logger.info(
                     `${player} ${rejoin ? 'rejoin' : 'join'} the room ${
                         room!.roomId
                     }}`,
                 )
-                room!.onJoin(player, options, rejoin)
             })
 
             socket.on('leaveRoom', (player) => {
@@ -96,6 +109,29 @@ export class CarBrawlServer {
         })
 
         this.startSyncProgress()
+    }
+
+    async hostGame() {
+        try {
+            const deploy = await createSysDeployReq(
+                `@"CarBrawl"!({"host": "${SystemRevAddr}", "cost": ${
+                    process.dev ? 1_000 : 100_000
+                }})`,
+            )
+            await sendDeploy(deploy)
+            await checkDeployStatus(
+                deploy.signature,
+                (errored, systemDeployError) => {
+                    throw new Error(
+                        'Does the deployer has enough REV? ' +
+                            systemDeployError,
+                    )
+                },
+            )
+            logger.success('Host game deploy success')
+        } catch (error) {
+            logger.error('Host game deploy failed:', error)
+        }
     }
 
     private numOfPlayersIn(roomId: string) {

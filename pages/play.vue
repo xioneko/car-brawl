@@ -1,26 +1,36 @@
 <template>
     <div>
         <div v-if="status === GameStatus.Setup">
-            <Setup @on-finish="startup" />
+            <PrettyContainer>
+                <Setup class="h-full w-full" @on-finish="startup" />
+            </PrettyContainer>
         </div>
         <div v-else-if="status === GameStatus.Pending">
-            <Pending @on-finish="status = GameStatus.Playing" />
+            <PrettyContainer>
+                <Pending @on-finish="status = GameStatus.Playing" />
+            </PrettyContainer>
         </div>
-        <div v-else-if="status === GameStatus.Playing" class="">
-            <Playground class="h-screen" :game-state="gameState" />
+        <div v-else-if="status === GameStatus.Playing">
+            <Playground
+                class="h-screen"
+                :game-state="gameState"
+                :theme="theme"
+            />
         </div>
         <div v-else-if="status === GameStatus.Ended">
-            <!-- <Ending @on-finish="status = GameStatus.Setup" /> -->
+            <Ending @on-finish="status = GameStatus.Setup" />
         </div>
-        <User />
-        <Popup />
+        <User class="fixed right-4 top-4" @market="a = !a" />
+        <Market v-if="a" @back="a = !a" />
     </div>
 </template>
 
 <script lang="ts" setup>
 import _ from 'lodash'
 import { Socket } from 'socket.io-client'
-import { consola } from 'consola'
+import { ref } from 'vue'
+// @ts-ignore
+import * as Toast from 'vue-toastification/dist/index.mjs'
 import {
     GameState,
     type CompetitiveServerEvents,
@@ -31,14 +41,13 @@ import {
     CompetitiveGameState,
     UserConfig,
     createRoomOptions,
+    RegularOptions,
+    type RevAccount,
+    Theme,
 } from '~/models'
-import { mockRoomOptions } from '~/test/mock'
-import { useSocket } from '~/composables/socket'
-import { useCtrlSample } from '~/composables/control'
-import { useAccountStore } from '~/stores/account'
 
-const logger = consola.withTag('Game')
-logger.level = process.dev ? 4 : 3
+const logger = useLogger('play')
+const a = ref(false)
 
 enum GameStatus {
     Setup,
@@ -50,9 +59,10 @@ const status = ref<GameStatus>(GameStatus.Setup)
 const gameState = ref<GameState>()
 const socket = useSocket()
 const ctrl = useCtrlSample()
-const account = useAccountStore()
-
-logger.debug(`account: `, account.playerId)
+const account = useAccount()
+const playerId = account.playerId
+const toast = Toast.useToast()
+const theme = ref<Theme>(Theme.presets.default)
 
 let sendCtrl: NodeJS.Timeout | undefined
 watch(
@@ -61,7 +71,7 @@ watch(
         if (curr === GameStatus.Playing) {
             sendCtrl = setInterval(() => {
                 // logger.debug('Send ctrl to server:\n', ctrl)
-                socket.volatile.emit('carCtrl', account.playerId, ctrl)
+                socket.volatile.emit('carCtrl', playerId, ctrl)
             }, 1000 / 128)
         } else {
             clearInterval(sendCtrl)
@@ -82,34 +92,43 @@ function startup(
     userConf: UserConfig,
     accessToken?: string,
 ) {
-    socket.on('stateSync', (state) => {
-        gameState.value = isCompetitiveGameState(state)
-            ? CompetitiveGameState.fromJSON(state)
-            : GameState.fromJSON(state)
-        // logger.debug('Receive state from Server:\n', gameState.value)
+    theme.value = userConf.theme
+
+    socket.on('joinStatus', (success, error) => {
+        if (success) {
+            socket.on('stateSync', (state) => {
+                gameState.value = isCompetitiveGameState(state)
+                    ? CompetitiveGameState.fromJSON(state)
+                    : GameState.fromJSON(state)
+                // logger.debug('Receive state from Server:\n', gameState.value)
+            })
+            status.value =
+                gameMode === RoomType.CompetitiveRoom
+                    ? GameStatus.Pending
+                    : GameStatus.Playing
+        } else {
+            toast.error(error ?? 'Join game failed, please try again later.')
+        }
     })
     if (gameMode === RoomType.CompetitiveRoom) {
-        type CompetitiveSocket = Socket<CompetitiveServerEvents, ClientEvents>
         socket.emit(
             'joinRoom',
             account.playerId,
             RoomType.CompetitiveRoom,
-            // TODO: new RegularOptions(account as RevAccount, userConf, accessToken),
-            mockRoomOptions('mock player', 'guest'),
+            new RegularOptions(
+                account.value as RevAccount,
+                userConf,
+                accessToken,
+            ),
         )
-        status.value = GameStatus.Pending
-        ;(socket as CompetitiveSocket).on('endGame', () => {
+        type CompetitiveSocket = Socket<CompetitiveServerEvents, ClientEvents>
+        ;(socket as CompetitiveSocket).on('endGame', (rewardRes) => {
+            logger.debug(rewardRes)
             status.value = GameStatus.Ended
         })
     } else {
-        socket.emit(
-            'joinRoom',
-            account.playerId,
-            gameMode,
-            createRoomOptions(account, userConf),
-        )
-        status.value = GameStatus.Playing
+        const roomOpts = createRoomOptions(account.value, userConf)
+        socket.emit('joinRoom', account.playerId, gameMode, roomOpts)
     }
 }
 </script>
-<style lang="less"></style>

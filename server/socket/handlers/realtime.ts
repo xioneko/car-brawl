@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { useLogger } from '@nuxt/kit'
 import {
     Bullet,
     Car,
@@ -101,7 +100,7 @@ function checkIfShot(self: Car, bullets: Set<Bullet>) {
                 (bullet.position.y - self.position.y) ** 2,
         )
         if (distance < Constant.SafetyRadius) {
-            logger.debug(`${self.player} shot by ${bullet.owner}`)
+            // logger.debug(`${self.player} shot by ${bullet.owner}`)
             return bullet.owner
         }
     }
@@ -109,14 +108,14 @@ function checkIfShot(self: Car, bullets: Set<Bullet>) {
 
 function checkIfHit(self: Car, cars: Map<string, Car>) {
     for (const [player, car] of cars) {
-        if (player === self.player) continue
+        if (player === self.player || car.status !== CarStatus.NORMAL) continue
 
         const distance = Math.sqrt(
             (car.position.x - self.position.x) ** 2 +
                 (car.position.y - self.position.y) ** 2,
         )
         if (distance < Constant.SafetyRadius * 2) {
-            logger.debug(`${car.name} hit ${self.name}`)
+            // logger.debug(`${car.name} hit ${self.name}`)
             return car.player
         }
     }

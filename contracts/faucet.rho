@@ -1,26 +1,25 @@
 new registerCh, log(`rho:io:stdout`) in {
     registerCh!(Set()) |
-    contract @"Faucet"(@systemAddr, @newcomer, return) = {
+    contract @"Faucet"(@deployer, @systemAddr, @newcomer, return) = {
       for (@s <- registerCh) {
-          if (not s.contains(newcomer)) {
-            registerCh!(s.add(newcomer)) |
-            new result in {
-              @"Transfer"!(systemAddr, newcomer, 888888, *result) |
-              for (@(success, msg) <- result) {
-                if (success) {
-                    return!((true, "Faucet success, newcomer: " ++ newcomer))
-                } else {
-                  for (@s <- registerCh) {
-                    registerCh!(s.delete(newcomer)) |
-                    return!((false, msg))
-                  }
-                }
+        log!(("[Faucet]", "registerCh: ", s)) |
+        if (not s.contains(newcomer)) {
+          new result in {
+            @"Transfer"!(deployer, systemAddr, newcomer, 1888888, *result) |
+            for (@(success, msg) <- result) {
+              if (success) {
+                registerCh!(s.add(newcomer)) |
+                return!((true, "Faucet success, newcomer " ++ newcomer))
+              } else {
+                registerCh!(s) |
+                return!((false, msg))
               }
             }
-          } else {
-              registerCh!(s) |
-              return!((false, newcomer ++ " has been registered"))
           }
+        } else {
+          registerCh!(s) |
+          return!((false, "Newcomer " ++ newcomer ++ " already registered"))
+        }
       }
     }
 }

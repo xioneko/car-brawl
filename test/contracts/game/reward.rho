@@ -1,3 +1,0 @@
-new log(`rho:io:stdout`) in {
-  @["id", "reward"]!(*log)
-}
