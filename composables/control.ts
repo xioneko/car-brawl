@@ -18,6 +18,7 @@ export const useCtrlSample = () => {
             case 'ArrowUp':
                 ctrl.forward = on
                 break
+            case 's':
             case 'ArrowDown':
                 ctrl.backward = on
                 break

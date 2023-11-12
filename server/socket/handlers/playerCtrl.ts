@@ -68,9 +68,9 @@ export function handlePlayerCtrl(
                     self.position.y - Math.cos(self.direction) * 10,
                 ),
                 new Vec2(
-                    self.velocity.x + Math.sin(self.direction) * 1.25,
-                    -self.velocity.y + Math.cos(self.direction) * 1.25,
-                ),
+                    self.velocity.x * 1.5 + Math.sin(self.direction) * 1.2,
+                    -self.velocity.y * 1.5 + Math.cos(self.direction) * 1.2,
+                ).constrain(Constant.BulletMinSpeed),
                 self.direction,
                 Constant.BulletLifespan,
                 userConfig.bulletStyle,

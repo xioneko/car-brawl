@@ -1,13 +1,17 @@
 {
     "cSpell.words": [
         "blakejs",
+        "bottts",
         "colyseus",
         "composables",
         "consola",
+        "dicebear",
         "Hocon",
+        "Kanit",
         "keccak",
         "narnialone",
         "nuxtjs",
+        "orbitron",
         "phlo",
         "rchain",
         "rholang",
@@ -25,5 +29,12 @@
     ],
     "css.customData": [
         ".vscode/tailwind.json"
-    ]
+    ],
+    "editor.quickSuggestions": {
+        "strings": "on"
+    },
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    "svg.preview.background": "transparent",
 }

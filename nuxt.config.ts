@@ -1,7 +1,7 @@
 export default defineNuxtConfig({
     runtimeConfig: {
         public: {
-            wsPort: process.env.SOCKET_PORT,
+            socketPort: process.env.SOCKET_PORT,
         },
     },
     devtools: {
@@ -20,27 +20,5 @@ export default defineNuxtConfig({
                 dir: '../contracts',
             },
         ],
-    },
-
-    tailwindcss: {
-        config: {
-            theme: {
-                fontFamily: {
-                    narnialone: ['Narnialone', 'sans-serif'],
-                    aller: ['Aller_Std_It', 'sans-serif'],
-                    just_for_fun: ['just_for_fun', 'sans-serif'],
-                },
-            },
-            content: [
-                './app.vue',
-                './components/**/*.{vue,ts}',
-                './layouts/**/*.vue',
-                './pages/**/*.vue',
-                './composables/**/*.ts',
-                './plugins/**/*.ts',
-                './utils/**/*.ts',
-                './nuxt.config.ts',
-            ],
-        },
     },
 })

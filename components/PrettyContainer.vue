@@ -1,17 +1,9 @@
 <template>
     <div class="h-screen w-screen overflow-auto">
-        <div class="absolute h-full w-full overflow-hidden">
-            <div
-                v-for="dot in dots"
-                :key="dot.id"
-                :style="{
-                    left: dot.x + 'px',
-                    top: dot.y + 'px',
-                    background: dot.color,
-                }"
-                class="absolute h-2 w-2 rounded-full"
-            ></div>
-        </div>
+        <canvas
+            ref="canvasRef"
+            class="absolute h-full w-full overflow-hidden bg-gradient-to-br from-[#303036] from-[42%] to-[#6F4222] to-[77.5%]"
+        ></canvas>
         <div
             class="relative top-1/2 mx-auto h-[560px] min-w-[910px] max-w-6xl -translate-y-1/2 overflow-hidden rounded-3xl bg-gray-900 shadow-2xl"
         >
@@ -42,53 +34,75 @@
 <script setup lang="ts">
 import _ from 'lodash'
 
-interface Dot {
-    id: number
+class Particle {
     x: number
     y: number
     color: string
     speedX: number
     speedY: number
+    private ctx: CanvasRenderingContext2D
+
+    constructor(ctx: CanvasRenderingContext2D) {
+        this.ctx = ctx
+        this.x = _.random(0, window.innerWidth)
+        this.y = _.random(0, window.innerHeight)
+        this.color = ['orange', 'hsl(0, 70%, 50%)', 'green'][_.random(0, 2)]
+        this.speedX = _.random(-3, 3) || 1
+        this.speedY = _.random(-3, 3) || 1
+    }
+
+    draw() {
+        this.ctx.beginPath()
+        this.ctx.arc(this.x, this.y, _.random(2, 5), 0, 2 * Math.PI)
+        this.ctx.fillStyle = this.color
+        this.ctx.fill()
+        this.ctx.closePath()
+    }
+
+    update() {
+        this.x += this.speedX
+        this.y += this.speedY
+
+        // 碰撞检测并反弹
+        if (this.x < 0 || this.x > window.innerWidth) {
+            this.speedX *= -1
+        }
+        if (this.y < 0 || this.y > window.innerHeight) {
+            this.speedY *= -1
+        }
+
+        this.draw()
+    }
 }
 
-const dots = ref<Dot[]>([])
+const canvasRef = ref<HTMLCanvasElement>()
 
-let moveDots: NodeJS.Timeout
+let onResize: () => void
 onMounted(() => {
-    const numDots = 80
-    const interval = 20 // 每20毫秒生成一个光点
-    for (let i = 0; i < numDots; i++) {
-        setTimeout(() => {
-            const colors = ['orange', 'hsl(0, 70%, 50%)', 'green']
-            const dot = {
-                id: i,
-                x: _.random(0, window.innerWidth),
-                y: _.random(0, window.innerHeight),
-                color: colors[Math.floor(Math.random() * colors.length)], // 随机选择颜色
-                speedX: _.random(-5, 5),
-                speedY: _.random(-5, 5),
-            }
-            dots.value.push(dot)
-        }, i * interval)
-    }
-    moveDots = setInterval(() => {
-        dots.value.forEach((dot) => {
-            dot.x += dot.speedX
-            dot.y += dot.speedY
+    const numOfParticles = 80
+    const canvas = canvasRef.value!
+    const ctx = canvas.getContext('2d')!
 
-            // 碰撞检测并反弹
-            if (dot.x < 0 || dot.x > window.innerWidth) {
-                dot.speedX *= -1
-            }
-            if (dot.y < 0 || dot.y > window.innerHeight) {
-                dot.speedY *= -1
-            }
-        })
-    }, 20)
+    onResize = () => {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+    }
+    addEventListener('resize', onResize)
+    onResize()
+
+    const particles = _.times(numOfParticles, () => new Particle(ctx))
+
+    function updateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        particles.forEach((p) => p.update())
+        requestAnimationFrame(updateParticles)
+    }
+
+    updateParticles()
 })
 
 onUnmounted(() => {
-    clearInterval(moveDots)
+    removeEventListener('resize', onResize)
 })
 </script>
 

@@ -70,7 +70,7 @@ onMounted(() => {
                 props.state.style.track,
             )
         }
-    }, 1000 / 128)
+    }, 1000 / Constant.TickRate)
 })
 
 onUnmounted(() => {

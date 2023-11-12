@@ -16,7 +16,6 @@ import {
     CompetitiveServerEvents,
     CarCtrl,
     RoomOptions,
-    RegularOptions,
 } from '~/models'
 import { dataAtName, propose, sendDeploy } from '~/server/rchain/http'
 
@@ -31,7 +30,8 @@ export class CompetitiveRoom extends Room<
 
     private endTime!: number
 
-    private gameStatus: 'waiting' | 'running' | 'ended' = 'waiting'
+    private gameStatus: 'waiting' | 'running' | 'ended' | 'finalized' =
+        'waiting'
 
     constructor(server: Server) {
         super(
@@ -44,7 +44,7 @@ export class CompetitiveRoom extends Room<
     }
 
     onCarCtrl(player: string, ctrl: CarCtrl): void {
-        if (this.gameStatus === 'running') {
+        if (this.gameStatus === 'running' || this.gameStatus === 'ended') {
             handlePlayerCtrl(
                 ctrl,
                 this.userData.get(player)!,
@@ -55,38 +55,44 @@ export class CompetitiveRoom extends Room<
     }
 
     nextTick(): void {
-        if (this.gameStatus === 'running') {
-            realtimeUpdate(this.userData, this.state)
-            this.state.timeLeft = this.endTime - Date.now()
-            if (this.state.timeLeft <= 0) {
-                // TODO: 处理玩家积分相同的情况
-                const pointsOfPlayer = _.fromPairs(
-                    _.map(Array.from(this.userData.keys()), (player) => [
-                        player,
-                        this.state.cars.get(player)?.points ?? 0,
-                    ]),
-                )
-                this.endGame(pointsOfPlayer, (rewardRes) => {
-                    this.send('endGame', this.roomId, rewardRes)
-                })
-                this.gameStatus = 'ended'
+        switch (this.gameStatus) {
+            case 'running': {
+                realtimeUpdate(this.userData, this.state)
+                this.state.timeLeft = Math.max(0, this.endTime - Date.now())
+                if (this.state.timeLeft === 0) {
+                    // TODO: 处理玩家积分相同的情况
+                    const pointsOfPlayer = _.fromPairs(
+                        _.map(Array.from(this.userData.keys()), (player) => [
+                            player,
+                            this.state.cars.get(player)?.score ?? 0,
+                        ]),
+                    )
+                    this.endGame(pointsOfPlayer, (rewardRes) => {
+                        this.send('endGame', this.roomId, rewardRes)
+                        this.gameStatus = 'finalized'
+                        this.dispose()
+                    })
+                    this.gameStatus = 'ended'
+                }
+                this.requestSync()
+                break
             }
-            this.requestSync()
+            case 'ended': {
+                realtimeUpdate(this.userData, this.state)
+                this.requestSync()
+                break
+            }
         }
     }
 
     onAuth(
-        options: RegularOptions,
+        player: string,
+        options: RoomOptions,
     ): [success: boolean, error?: string | undefined] {
         const { accessToken } = options
         if (accessToken) {
             try {
-                if (
-                    CompetitiveRoom.verifyAccessToken(
-                        accessToken,
-                        options.account.revAddr,
-                    )
-                ) {
+                if (CompetitiveRoom.verifyAccessToken(accessToken, player)) {
                     return [true]
                 } else {
                     return [false, 'Invalid access token']

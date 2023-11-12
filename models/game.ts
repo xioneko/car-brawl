@@ -9,6 +9,23 @@ export class Vec2 {
         this.x = x
         this.y = y
     }
+
+    get lengthSquare() {
+        return this.x ** 2 + this.y ** 2
+    }
+
+    get length() {
+        return Math.sqrt(this.lengthSquare)
+    }
+
+    constrain(minLen: number) {
+        if (this.length < minLen) {
+            const k = Math.ceil(minLen / this.length)
+            this.x *= k
+            this.y *= k
+        }
+        return this
+    }
 }
 
 export enum CarStatus {
@@ -27,7 +44,7 @@ export class Car {
     direction: number
     lastShootAt: number
     lastRebirthAt: number
-    points: number
+    score: number
     status: CarStatus
     style: CarStyle
 
@@ -46,7 +63,7 @@ export class Car {
         this.direction = 0
         this.lastShootAt = 0
         this.lastRebirthAt = 0
-        this.points = 0
+        this.score = 0
         this.status = CarStatus.NORMAL
         this.style = style
     }
@@ -139,17 +156,19 @@ export interface CarCtrl {
 }
 
 export const Constant = {
+    TickRate: 60,
     MapWidth: 1500,
     MapHeight: 1500,
-    MaxPower: 0.08,
-    MinPower: -0.04,
-    PowerFactor: 0.0008,
-    ReverseFactor: 0.0004,
-    TurnSpeed: 0.0025,
+    MaxPower: 0.16,
+    MinPower: -0.1,
+    PowerFactor: 0.008,
+    ReverseFactor: 0.008,
+    TurnSpeed: 0.005,
     Drag: 0.95,
     AngularDrag: 0.85,
     SafetyRadius: 7.5,
-    ShootInterval: 60,
+    ShootInterval: 120,
     InvincibleInterval: 1024,
-    BulletLifespan: 128,
+    BulletLifespan: 108,
+    BulletMinSpeed: 1.5,
 }

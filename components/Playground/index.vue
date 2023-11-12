@@ -33,15 +33,16 @@
                 />
             </div>
         </div>
-        <div class="fixed left-6 top-6">
+        <div
+            class="fixed left-1/2 top-4 z-10 -translate-x-1/2 font-ibm_plex_mono text-3xl mix-blend-difference"
+        >
             {{
                 isCompetitiveGameState(gameState)
-                    ? dayjs(gameState.timeLeft).format('m:ss')
-                    : ''
+                    ? dayjs(gameState.timeLeft).format('mm:ss')
+                    : '00:00'
             }}
         </div>
         <!-- <PlaygroundDashboard class="absolute" :source="localCar" /> -->
-        <!-- <PlaygroundRanking /> -->
     </div>
 </template>
 

@@ -71,7 +71,7 @@ export function realtimeUpdate(
             let killer
             if ((killer = checkIfShot(self, bullets))) {
                 self.status = CarStatus.DEATH
-                cars.get(killer)!.points++
+                cars.get(killer)!.score++
             } else if (checkIfHit(self, cars)) reborn(self)
         }
 

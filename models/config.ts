@@ -42,13 +42,13 @@ export namespace CarStyle {
             Color.hsl(0, 0, 0).alpha(0.5),
             Color.hsl(0, 0, 100).alpha(0.375),
             Color.hsl(0, 0, 50),
-            Color.hsl(0, 0, 25).alpha(0.25),
+            Color.hsl(0, 0, 3).alpha(0.3),
         ),
         red: new CarStyle(
             Color.hsl(0, 100, 50).alpha(0.25),
             Color.hsl(0, 100, 50).alpha(0.25),
             Color.hsl(0, 100, 50).alpha(0.25),
-            Color.hsl(0, 100, 50).alpha(0.25),
+            Color.hsl(0, 100, 50).alpha(0.3),
         ),
     }
 }

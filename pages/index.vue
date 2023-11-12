@@ -1,5 +1,28 @@
 <template>
     <div>
+        <Head>
+            <Link
+                rel="preload"
+                as="font"
+                type="font/ttf"
+                href="/fonts/Aller_Std_It.ttf"
+                crossorigin="anonymous"
+            />
+            <Link
+                rel="preload"
+                as="font"
+                type="font/otf"
+                href="/fonts/Narnialone-demo.otf"
+                crossorigin="anonymous"
+            />
+            <Link
+                rel="preload"
+                as="font"
+                type="font/ttf"
+                href="/fonts/JosefinSans-VariableFont_wght.ttf"
+                crossorigin="anonymous"
+            />
+        </Head>
         <PrettyContainer>
             <div class="flex h-full w-full">
                 <div class="relative top-[14%] lg:top-[8%]">
@@ -19,18 +42,19 @@
                         Gear up and enter the Car-Brawl arena! ! ! !
                     </p>
                     <div
-                        class="mt-10 flex flex-col items-start gap-y-6 lg:justify-start"
+                        class="mt-10 flex flex-col items-start gap-y-6 font-josefin_sans text-lg text-white lg:justify-start"
                     >
                         <button
-                            class="text-whit inline-block w-full rounded-lg border border-orange-300/75 p-2 text-center text-white hover:bg-orange-400/25"
+                            class="inline-block w-full rounded-lg border border-orange-300/75 p-[6px] text-center hover:bg-orange-400/25"
                             @click="connectMetamask"
                         >
                             Connect Metamask
                         </button>
                         <button
-                            class="text-whit inline-block w-full rounded-lg border border-orange-300/75 p-2 text-center text-white hover:bg-orange-400/25"
+                            class="inline-block w-full rounded-lg border border-orange-300/75 p-[6px] text-center hover:bg-orange-400/25"
+                            @click="beTheGuest"
                         >
-                            <NuxtLink to="/play">Guest Mode</NuxtLink>
+                            Guest Mode
                         </button>
                     </div>
                 </div>
@@ -43,18 +67,18 @@
 
 <script lang="ts" setup>
 import _ from 'lodash'
-// @ts-ignore
-import * as Toast from 'vue-toastification/dist/index.mjs'
 import type { AsyncDataRequestStatus } from 'nuxt/dist/app/composables/asyncData'
 import { type PostLogin } from '~/models'
 
 const loginStatus = ref<AsyncDataRequestStatus>('idle')
 const logger = useLogger('Index')
-const toast = Toast.useToast()
+const toast = useToast()
 const account = useAccount()
-onMounted(() => {
-    // account.$reset()
-})
+
+function beTheGuest() {
+    account.value = { guestId: `guest_${Math.random().toString(36).slice(-8)}` }
+    navigateTo('/play')
+}
 
 async function connectMetamask() {
     const base58 = await import('bs58')
@@ -148,14 +172,19 @@ async function connectMetamask() {
 
 <style scoped>
 .slide-in {
-    animation: slideIn 1s ease-out;
+    animation: slideIn 1s cubic-bezier(0.05, 0.89, 0.32, 1.07);
     animation-fill-mode: forwards;
-    transform: translateX(-100%); /* 初始位置在视图左侧 */
+    transform: translateX(-100%) scaleY(0.85);
+    opacity: 0;
+    filter: blur(3px);
 }
 
 @keyframes slideIn {
     to {
         transform: translateX(0); /* 最终位置，回到原始位置 */
+        opacity: 1;
+        filter: blur(0);
+        filter: drop-shadow(2px 1px 6px #000);
     }
 }
 </style>
