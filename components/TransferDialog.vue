@@ -93,28 +93,33 @@ async function transfer() {
     }
     transferStatus.value = 'pending'
 
-    const revAccount = account.value as RevAccount
-    const { deploy, signature } = await createDeploy(
-        revAccount,
-        `new deployId(\`rho:rchain:deployId\`), deployer(\`rho:rchain:deployerId\`) in {
+    try {
+        const revAccount = account.value as RevAccount
+        const { deploy, signature } = await createDeploy(
+            revAccount,
+            `new deployId(\`rho:rchain:deployId\`), deployer(\`rho:rchain:deployerId\`) in {
             @"Transfer"!(*deployer, "${revAccount.revAddr}", "${toRevAddr.value}", ${amount.value}, *deployId)
         }`,
-    )
+        )
 
-    const { error } = await $fetch<PostTransfer.Res>('/api/transfer', {
-        method: 'POST',
-        body: {
-            deploy,
-            signature,
-        } as PostTransfer.Req,
-    })
+        const { error } = await $fetch<PostTransfer.Res>('/api/transfer', {
+            method: 'POST',
+            body: {
+                deploy,
+                signature,
+            } as PostTransfer.Req,
+        })
 
-    if (error) {
+        if (error) {
+            transferStatus.value = 'error'
+            toast.error(`Transfer failed: ${error ?? 'unknown error'}`)
+        } else {
+            transferStatus.value = 'success'
+            toast.success(`Transfer successful`)
+        }
+    } catch (error) {
         transferStatus.value = 'error'
         toast.error(`Transfer failed: ${error ?? 'unknown error'}`)
-    } else {
-        transferStatus.value = 'success'
-        toast.success(`Transfer successful`)
     }
 }
 
@@ -124,7 +129,7 @@ function verify(toRevAddr?: string, amount?: number) {
         amount &&
         /^[0-9a-zA-Z]{53}$/.test(toRevAddr) &&
         Number.isSafeInteger(amount) &&
-        amount > 10000
+        amount >= 10000
     )
 }
 </script>
