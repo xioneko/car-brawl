@@ -40,9 +40,7 @@ export class CarBrawlServer {
 
         this.io = new Server(port, {
             cors: {
-                origin: `http://${
-                    process.dev ? 'localhost' : process.env.SERVER_IP
-                }:${process.env.PORT}`,
+                origin: `http://localhost:${process.env.PORT}`,
             },
         })
 

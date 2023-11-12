@@ -19,8 +19,8 @@
                         class="block w-fit rounded-lg bg-neutral-200/50 px-3 py-1 text-xs text-neutral-500"
                     >
                         {{ address }}
+                        <div class="relative mt-8 text-center text-neutral-600">
                     </button>
-                    <div class="relative mt-8 text-center text-neutral-600">
                         <span
                             class="absolute -left-7 top-1 text-xs text-neutral-400"
                             >REV</span
@@ -31,6 +31,12 @@
                             >×10<sup>-8</sup></span
                         >
                     </div>
+                    <button
+                        class="mt-4 block w-full rounded-lg bg-orange-500 px-2 py-1 text-base text-white"
+                        @click="$emit('market')"
+                    >
+                        Market
+                    </button>
                 </template>
                 <template v-else>
                     <div class="mt-5 text-xl text-neutral-500">
@@ -52,7 +58,8 @@
 
 <script lang="ts" setup>
 import type { GetBalance, RevAccount } from '~/models'
-
+defineEmits(['market'])
+const a = false
 const logger = useLogger('User')
 const openPopover = ref<boolean>(false)
 const popover = ref<HTMLElement | null>(null)

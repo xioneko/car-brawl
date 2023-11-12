@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const host = process.dev ? 'localhost' : process.env.RNODE_IP
+const host = process.dev ? '127.0.0.1' : process.env.RNODE_EXTERNAL_HOST
 const port = {
     http: process.env.RNODE_HTTP_PORT!,
     admin: process.env.RNODE_HTTP_ADMIN_PORT!,

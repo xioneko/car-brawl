@@ -43,7 +43,8 @@
                 />
             </PrettyContainer>
         </div>
-        <User class="fixed right-4 top-4 z-10" />
+        <User class="fixed right-4 top-4" z-10 @market="a = !a" />
+        <Market v-if="a" @back="a = !a" />
     </div>
 </template>
 
@@ -65,6 +66,7 @@ import {
 } from '~/models'
 
 const logger = useLogger('play')
+const a = ref(false)
 
 enum GameStatus {
     Setup,

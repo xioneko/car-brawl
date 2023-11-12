@@ -36,10 +36,10 @@
                 </div>
                 <div class="relative mx-auto self-center">
                     <p class="font-narnialone text-6xl font-bold text-white">
-                        Car brawl
+                        Car Brawl
                     </p>
-                    <p class="mt-6 font-aller text-sm leading-8 text-gray-300">
-                        try this game and you will never regret it ! ! !
+                    <p class="font-aller mt-6 text-sm leading-8 text-gray-300">
+                        Gear up and enter the Car-Brawl arena! ! ! !
                     </p>
                     <div
                         class="mt-10 flex flex-col items-start gap-y-6 font-josefin_sans text-lg text-white lg:justify-start"
