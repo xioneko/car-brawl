@@ -77,3 +77,14 @@ export namespace PostBuyTicket {
         error?: string
     }
 }
+
+export namespace PostTransfer {
+    export interface Req {
+        deploy: DeployData
+        signature: string
+    }
+
+    export type Res = {
+        error?: string
+    }
+}

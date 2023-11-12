@@ -1,3 +1,4 @@
+import * as ethUtil from '@ethereumjs/util'
 import { BinaryWriter } from 'google-protobuf'
 import { fetchDeployInfo } from '../rchain/http'
 import { signDeploy } from '../rchain/sign'
@@ -21,6 +22,34 @@ export async function createSysDeployReq(
         validAfterBlockNumber: seqNum!,
     }
     return signDeploy(deployData)
+}
+
+export function createUsrDeployReq(
+    deployData: DeployData,
+    sigHex: string,
+): DeployRequest {
+    const pubKeyHex = recoverPublicKeyEth(
+        deployDataProtobufSerialize(deployData),
+        sigHex,
+    )
+
+    return {
+        data: deployData,
+        sigAlgorithm: 'secp256k1:eth',
+        signature: remove0x(sigHex),
+        deployer: remove0x(pubKeyHex),
+    }
+
+    function recoverPublicKeyEth(data: Uint8Array, sigHex: string) {
+        const hashed = ethUtil.hashPersonalMessage(data)
+        const { v, r, s } = ethUtil.fromRpcSig(sigHex)
+        const pubKeyRecover = ethUtil.ecrecover(hashed, v, r, s)
+        return ethUtil.bytesToHex(Uint8Array.from([4, ...pubKeyRecover]))
+    }
+
+    function remove0x(hexStr: string) {
+        return hexStr.replace(/^0x/, '')
+    }
 }
 
 export async function checkDeployStatus(

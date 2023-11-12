@@ -1,9 +1,9 @@
 <template>
     <div>
-        <!-- https://play.tailwindcss.com/egVNubuTXL -->
         <img
-            class="cursor-pointer"
+            class="cursor-pointer hover:brightness-150"
             src="~/assets/icons/user.svg"
+            :class="{ 'brightness-150': openPopover }"
             width="24"
             alt="User"
             @click="openPopover = !openPopover"
@@ -12,41 +12,54 @@
             <div
                 v-if="openPopover"
                 ref="popover"
-                class="absolute right-0 top-7 flex h-40 w-52 flex-col items-center rounded-md bg-neutral-50 pt-5 shadow-md"
+                class="absolute right-0 top-7 flex w-52 flex-col items-center rounded-md bg-neutral-700 pt-5 shadow-md"
             >
                 <template v-if="account.type === AccountType.Registered">
                     <button
-                        class="block w-fit rounded-lg bg-neutral-200/50 px-3 py-1 text-xs text-neutral-500"
+                        class="flex w-28 items-center justify-center gap-1 rounded-full bg-orange-300/20 py-1 text-[10px] text-orange-300"
+                        @click.stop="copyAddrToClipboard"
                     >
-                        {{ address }}
-                        <div class="relative mt-8 text-center text-neutral-600">
+                        <template v-if="!copied">
+                            <span>{{ address }}</span>
+                            <img
+                                src="~/assets/icons/copy.svg"
+                                alt="copy"
+                                width="16"
+                            />
+                        </template>
+                        <template v-else>
+                            <span class="text-xs">copied</span>
+                        </template>
                     </button>
+                    <div class="relative mt-7 text-center">
                         <span
-                            class="absolute -left-7 top-1 text-xs text-neutral-400"
+                            class="absolute -left-7 top-1 text-xs text-neutral-300"
                             >REV</span
                         >
-                        <span class="text-2xl">{{ balance }}</span>
+                        <span class="text-2xl text-neutral-50">{{
+                            balance
+                        }}</span>
                         <span
-                            class="absolute -right-9 top-3 text-xs text-neutral-400"
+                            class="absolute -right-9 top-3 text-xs text-neutral-300"
                             >×10<sup>-8</sup></span
                         >
                     </div>
                     <button
-                        class="mt-4 block w-full rounded-lg bg-orange-500 px-2 py-1 text-base text-white"
-                        @click="$emit('market')"
+                        class="mb-4 mt-6 block rounded-lg bg-orange-500/95 px-12 py-1 text-base text-white hover:bg-orange-400"
+                        @click="$emit('onTransfer'), (openPopover = false)"
                     >
-                        Market
+                        Transfer
                     </button>
                 </template>
                 <template v-else>
-                    <div class="mt-5 text-xl text-neutral-500">
+                    <div class="mt-5 text-xl text-neutral-300">
                         Guest Account
                     </div>
                     <div class="mt-4 text-xs text-neutral-400">
                         Please login through Metamask
                     </div>
                     <NuxtLink
-                        class="mt-2 text-xs text-neutral-400 underline"
+                        class="mb-9 mt-2 text-xs text-neutral-400 underline"
                         to="/"
                         >Back to home page</NuxtLink
                     >
@@ -58,11 +71,13 @@
 
 <script lang="ts" setup>
 import type { GetBalance, RevAccount } from '~/models'
-defineEmits(['market'])
-const a = false
+
+defineEmits(['onTransfer'])
+
 const logger = useLogger('User')
 const openPopover = ref<boolean>(false)
 const popover = ref<HTMLElement | null>(null)
+const copied = ref<boolean>(false)
 const account = useAccount()
 const balanceAsync = useLazyFetch<GetBalance.Res>(`api/balance`, {
     params: {
@@ -104,7 +119,7 @@ watch(openPopover, (isOpen) => {
             const inactiveListener = (event: MouseEvent) => {
                 // 判断鼠标是否点击在 popover 内
                 if (!popover.value?.contains(event.target as Node)) {
-                    // logger.debug('Close popover')
+                    logger.debug('Close popover')
                     openPopover.value = false
                     removeEventListener('click', inactiveListener)
                 }
@@ -113,6 +128,16 @@ watch(openPopover, (isOpen) => {
         }, 500)
     }
 })
+
+function copyAddrToClipboard() {
+    if (account.type === AccountType.Registered) {
+        navigator.clipboard.writeText((account.value as RevAccount).revAddr)
+        copied.value = true
+        setTimeout(() => {
+            copied.value = false
+        }, 1000)
+    }
+}
 </script>
 
 <style>

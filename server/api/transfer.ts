@@ -1,15 +1,12 @@
-import { CompetitiveRoom } from '../socket/rooms'
-import { sendDeploy, propose, dataAtName } from '../rchain/http'
-import { PostBuyTicket } from '~/models'
+import { dataAtName, propose, sendDeploy } from '../rchain/http'
+import { PostTransfer } from '~/models'
 
-const logger = useLogger('BuyTicket Service')
+const logger = useLogger('Transfer Service')
 
-export default defineEventHandler(async (event): Promise<PostBuyTicket.Res> => {
-    const {
-        deploy: deployData,
-        account,
-        signature: sigHex,
-    } = await readBody<PostBuyTicket.Req>(event)
+export default defineEventHandler(async (event): Promise<PostTransfer.Res> => {
+    const { deploy: deployData, signature: sigHex } =
+        await readBody<PostTransfer.Req>(event)
+
     try {
         const deployRequest = createUsrDeployReq(deployData, sigHex)
 
@@ -25,16 +22,14 @@ export default defineEventHandler(async (event): Promise<PostBuyTicket.Res> => {
                 message: 'Do you have enough REV?',
             })
         })
+
         const [success, msg] = await dataAtName<[boolean?, string?]>(deployId)
 
         if (success) {
-            const accessToken = CompetitiveRoom.createAccessToken(
-                account.revAddr,
-            )
-            return { accessToken }
+            return {}
         }
 
-        return { error: msg ?? 'Buy ticket failed.' }
+        return { error: msg ?? 'Transfer failed.' }
     } catch (error) {
         logger.debug(error)
         throw error

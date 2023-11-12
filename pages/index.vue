@@ -28,7 +28,7 @@
                 <div class="relative top-[14%] lg:top-[8%]">
                     <img
                         class="slide-in ml-6 w-[36em] lg:w-[44em]"
-                        src="~/assets/images/cool-car.svg"
+                        src="~/assets/images/cool-car.webp"
                         alt="Cool Car"
                         width="1840"
                         height="1080"
@@ -38,7 +38,7 @@
                     <p class="font-narnialone text-6xl font-bold text-white">
                         Car Brawl
                     </p>
-                    <p class="font-aller mt-6 text-sm leading-8 text-gray-300">
+                    <p class="mt-6 font-aller text-sm leading-8 text-gray-300">
                         Gear up and enter the Car-Brawl arena! ! ! !
                     </p>
                     <div
@@ -93,7 +93,6 @@ async function connectMetamask() {
         const revAddr = createRevAddrFromEth(ethAddr)
         // account.$patch({ value: { ethAddr, revAddr } })
         account.value = { ethAddr, revAddr }
-
         try {
             loginStatus.value = 'pending'
             const { registered, error } = await $fetch<PostLogin.Res>(
@@ -118,7 +117,7 @@ async function connectMetamask() {
             } else {
                 loginStatus.value = 'success'
                 toast.success(
-                    'Congratulations, you have received a reward of 1888888 REV!',
+                    '🎉 Congratulations, you have received a reward of 1888888 REV!',
                 )
                 await navigateTo('/play')
             }

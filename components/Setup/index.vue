@@ -1,49 +1,55 @@
 <template>
     <div class="flex flex-col text-white">
         <div class="pl-8 pt-8 font-narnialone text-5xl">Car Brawl</div>
-        <div
-            v-if="progress === SetupProgress.ChooseFlavor"
-            class="flex h-full flex-col items-center justify-center gap-7 font-just_for_fun text-5xl text-white"
-        >
-            <div
-                v-for="(presets, category) in Flavors"
-                :key="category"
-                class="flex gap-12"
-            >
-                <div class="w-32 text-right">{{ _.upperFirst(category) }}</div>
-                <SetupSelect
-                    v-model="flavor[category].value"
-                    class="w-56"
-                    :options="presets"
-                />
-            </div>
-        </div>
-        <div
-            v-else-if="progress === SetupProgress.Startup"
-            class="flex h-full flex-col items-center justify-center gap-7 font-just_for_fun text-5xl"
-        >
-            <div class="flex items-center gap-12">
-                <label for="name" class="w-32 text-right">Name</label>
-                <input
-                    id="name"
-                    v-model="name"
-                    type="text"
-                    maxlength="11"
-                    class="w-60 rounded-md border-2 border-white/80 bg-transparent px-5 py-2 text-center text-4xl outline-none selection:bg-white/25"
-                />
-            </div>
-            <div class="flex gap-12">
-                <div class="w-32 text-right">Mode</div>
-                <SetupSelect
-                    v-model="gameMode"
-                    class="w-60"
-                    :options="
-                        account.type === AccountType.Guest
-                            ? _.omit(GameModes, ['Competitive'])
-                            : GameModes
-                    "
-                />
-            </div>
+        <div class="relative flex flex-grow flex-col">
+            <Transition>
+                <div
+                    v-if="progress === SetupProgress.ChooseFlavor"
+                    class="flex h-full flex-col items-center justify-center gap-7 font-just_for_fun text-5xl text-white"
+                >
+                    <div
+                        v-for="(presets, category) in Flavors"
+                        :key="category"
+                        class="flex gap-12"
+                    >
+                        <div class="w-32 text-right">
+                            {{ _.upperFirst(category) }}
+                        </div>
+                        <SetupSelect
+                            v-model="flavor[category].value"
+                            class="w-56"
+                            :options="presets"
+                        />
+                    </div>
+                </div>
+                <div
+                    v-else-if="progress === SetupProgress.Startup"
+                    class="flex h-full flex-col items-center justify-center gap-7 font-just_for_fun text-5xl"
+                >
+                    <div class="flex items-center gap-12">
+                        <label for="name" class="w-32 text-right">Name</label>
+                        <input
+                            id="name"
+                            v-model="name"
+                            type="text"
+                            maxlength="11"
+                            class="w-60 rounded-md border-2 border-white/80 bg-transparent px-5 py-2 text-center text-4xl outline-none selection:bg-white/25"
+                        />
+                    </div>
+                    <div class="flex gap-12">
+                        <div class="w-32 text-right">Mode</div>
+                        <SetupSelect
+                            v-model="gameMode"
+                            class="w-60"
+                            :options="
+                                account.type === AccountType.Guest
+                                    ? _.omit(GameModes, ['Competitive'])
+                                    : GameModes
+                            "
+                        />
+                    </div>
+                </div>
+            </Transition>
         </div>
         <div class="flex justify-between px-7 pb-3 font-just_for_fun text-4xl">
             <button
@@ -178,5 +184,25 @@ async function joinGame() {
 <style scoped>
 button:hover:not(:disabled) {
     text-shadow: 0 0 4px #fff;
+}
+.v-enter-active,
+.v-leave-active {
+    transition: all 0.5s;
+}
+
+.v-enter-from {
+    transform: translateX(50px);
+}
+
+.v-leave-from {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.v-leave-to {
+    position: absolute;
+    left: 50%;
+    transform: translateX(calc(-50% + 50px));
 }
 </style>

@@ -1,47 +1,48 @@
 <template>
     <div>
         <div
-            class="background fixed h-screen w-screen"
+            class="fixed h-screen w-screen"
             :style="{ backgroundColor: styles.theme.background }"
-        ></div>
-        <div
-            class="scene absolute h-[1500px] w-[1500px] overflow-hidden"
-            :style="{
-                transform: styles.sceneTranslate.value,
-            }"
         >
-            <canvas
-                ref="canvas"
-                class="absolute left-0 top-0 h-full w-full"
-                width="1500"
-                height="1500"
-                :style="{ backgroundColor: styles.theme.foreground }"
-            ></canvas>
-            <div class="bullets">
-                <!-- eslint-disable-next-line vue/valid-v-for -->
-                <PlaygroundBullet
-                    v-for="bulletState of gameState?.bullets?.values() ?? []"
-                    :state="bulletState"
-                />
+            <div
+                class="scene absolute h-[1500px] w-[1500px] overflow-hidden"
+                :style="{
+                    transform: styles.sceneTranslate.value,
+                }"
+            >
+                <canvas
+                    ref="canvas"
+                    class="absolute left-0 top-0 h-full w-full"
+                    width="1500"
+                    height="1500"
+                    :style="{ backgroundColor: styles.theme.foreground }"
+                ></canvas>
+                <div class="bullets">
+                    <!-- eslint-disable-next-line vue/valid-v-for -->
+                    <PlaygroundBullet
+                        v-for="bulletState of gameState?.bullets?.values() ??
+                        []"
+                        :state="bulletState"
+                    />
+                </div>
+                <div class="cars">
+                    <PlaygroundCar
+                        v-for="[id, carState] of gameState?.cars ?? []"
+                        :key="id"
+                        :state="carState"
+                        @on-track="drawTireTrack"
+                    />
+                </div>
             </div>
-            <div class="cars">
-                <PlaygroundCar
-                    v-for="[id, carState] of gameState?.cars ?? []"
-                    :key="id"
-                    :state="carState"
-                    @on-track="drawTireTrack"
-                />
+            <div
+                v-if="isCompetitiveGameState(gameState)"
+                class="contrast-color fixed left-1/2 top-4 z-10 -translate-x-1/2 font-ibm_plex_mono text-3xl"
+                :style="{ color: countdownColor }"
+            >
+                {{ dayjs(gameState.timeLeft).format('mm:ss') }}
             </div>
         </div>
-        <div
-            class="fixed left-1/2 top-4 z-10 -translate-x-1/2 font-ibm_plex_mono text-3xl mix-blend-difference"
-        >
-            {{
-                isCompetitiveGameState(gameState)
-                    ? dayjs(gameState.timeLeft).format('mm:ss')
-                    : '00:00'
-            }}
-        </div>
+
         <!-- <PlaygroundDashboard class="absolute" :source="localCar" /> -->
     </div>
 </template>
@@ -49,19 +50,23 @@
 <script lang="ts" setup>
 import _ from 'lodash'
 import dayjs from 'dayjs'
+import Color from 'color'
 import { Car, isCompetitiveGameState, GameState } from '~/models/game'
 import { Theme } from '~/models'
 
-const logger = useLogger('Playground')
-
-const account = useAccount()
-const canvas = ref<HTMLCanvasElement | null>()
-const localCar = ref<Car>()
+defineExpose({
+    clear: clearPlayground,
+})
 
 const props = defineProps<{
     gameState?: GameState
     theme?: Theme
 }>()
+
+const logger = useLogger('Playground')
+const account = useAccount()
+const canvas = ref<HTMLCanvasElement | null>()
+const localCar = ref<Car>()
 
 const styles = {
     theme: props.theme ?? Theme.presets.default,
@@ -76,6 +81,11 @@ const styles = {
         return `translate(${sceneX}px, ${sceneY}px)`
     }),
 }
+const countdownColor = computed(() => {
+    return Color(styles.theme.background).isDark()
+        ? Color(styles.theme.background).lighten(0.5).hex()
+        : Color(styles.theme.background).darken(0.5).hex()
+})
 
 function drawTireTrack(direction: number, x: number, y: number, color: string) {
     if (!props.gameState || !canvas.value) return
@@ -102,11 +112,10 @@ function drawTireTrack(direction: number, x: number, y: number, color: string) {
         1,
     )
 }
-// TODO: 绘制地图元素（用于提供其他玩家的方位信息）
-</script>
 
-<style scoped>
-* {
-    user-select: none;
+function clearPlayground() {
+    if (!canvas.value) return
+    const ctx = canvas.value.getContext('2d')!
+    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 }
-</style>
+</script>

@@ -13,23 +13,24 @@
         <div
             v-else-if="status === GameStatus.Playing"
             tabindex="0"
-            @keydown.tab.prevent="openScoreboard = true"
-            @keyup.tab.prevent="openScoreboard = false"
+            @keydown.tab.prevent="showScoreboard = true"
+            @keyup.tab.prevent="showScoreboard = false"
         >
             <Menu
                 class="fixed left-4 top-4 z-10"
-                @show-rank="openScoreboard = true"
+                @show-rank="showScoreboard = true"
                 @exit="exitGame"
                 @show-help="undefined"
-                @clear="undefined"
+                @clear="playground?.clear"
             />
             <ScoreBoard
-                v-if="openScoreboard"
+                v-if="showScoreboard"
                 :score-list="scoreList"
                 class="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
-                @on-close="openScoreboard = false"
+                @on-close="showScoreboard = false"
             />
             <Playground
+                ref="playground"
                 class="h-screen"
                 :game-state="gameState"
                 :theme="theme"
@@ -43,14 +44,24 @@
                 />
             </PrettyContainer>
         </div>
-        <User class="fixed right-4 top-4" z-10 @market="a = !a" />
-        <Market v-if="a" @back="a = !a" />
+        <User
+            class="fixed right-4 top-4 z-10"
+            @on-transfer="showTransferDialog = true"
+        />
+        <Transition>
+            <TransferDialog
+                v-if="showTransferDialog"
+                class="backdrop-blur-md"
+                @on-back="showTransferDialog = false"
+            />
+        </Transition>
     </div>
 </template>
 
 <script lang="ts" setup>
 import _ from 'lodash'
 import { Socket } from 'socket.io-client'
+import { Playground } from '#components'
 import {
     GameState,
     type CompetitiveServerEvents,
@@ -66,7 +77,6 @@ import {
 } from '~/models'
 
 const logger = useLogger('play')
-const a = ref(false)
 
 enum GameStatus {
     Setup,
@@ -79,10 +89,12 @@ const carCtrl = useCtrlSample()
 const account = useAccount()
 const toast = useToast()
 const socket = useSocket()
+const playground = ref<InstanceType<typeof Playground> | null>(null)
 const status = ref<GameStatus>(GameStatus.Setup)
 const gameState = ref<GameState>()
 const theme = ref<Theme>(Theme.presets.default)
-const openScoreboard = ref(false)
+const showScoreboard = ref(false)
+const showTransferDialog = ref(false)
 const gameResults = ref<{ player: string; score: number; reward: number }[]>([])
 const scoreList = computed(() => {
     return _.map(
@@ -167,3 +179,16 @@ function exitGame() {
     status.value = GameStatus.Setup
 }
 </script>
+
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+    opacity: 0;
+}
+</style>
