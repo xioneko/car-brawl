@@ -160,13 +160,13 @@ function startup(
 
     if (gameMode === RoomType.CompetitiveRoom) {
         type CompetitiveSocket = Socket<CompetitiveServerEvents, ClientEvents>
-        ;(socket as CompetitiveSocket).on('endGame', (rewardRes) => {
-            logger.debug(rewardRes)
+        ;(socket as CompetitiveSocket).on('endGame', (gameRes) => {
+            logger.debug(gameRes)
 
-            gameResults.value = _.map(scoreList.value, (item) => ({
-                player: item.player,
-                score: item.score,
-                reward: rewardRes[item.player] ?? 0,
+            gameResults.value = _.map(gameRes, ({ score, reward }, player) => ({
+                score,
+                reward,
+                player,
             }))
 
             status.value = GameStatus.Ended

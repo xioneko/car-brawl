@@ -68,7 +68,13 @@ export class CompetitiveRoom extends Room<
                         ]),
                     )
                     this.endGame(pointsOfPlayer, (rewardRes) => {
-                        this.send('endGame', this.roomId, rewardRes)
+                        const gameRes = _.mapValues(
+                            pointsOfPlayer,
+                            (score, player) => {
+                                return { score, reward: rewardRes[player] }
+                            },
+                        )
+                        this.send('endGame', this.roomId, gameRes)
                         this.gameStatus = 'finalized'
                         this.dispose()
                     })

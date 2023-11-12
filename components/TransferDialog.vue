@@ -117,9 +117,9 @@ async function transfer() {
             transferStatus.value = 'success'
             toast.success(`Transfer successful`)
         }
-    } catch (error) {
+    } catch (error: any) {
         transferStatus.value = 'error'
-        toast.error(`Transfer failed: ${error ?? 'unknown error'}`)
+        toast.error(`Transfer failed: ${error.message ?? 'unknown error'}`)
     }
 }
 

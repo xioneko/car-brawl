@@ -20,5 +20,7 @@ export interface ClientEvents {
 export interface CompetitiveServerEvents extends ServerEvents {
     progressUpdate: (progress: PendingProgress) => void
     startGame: () => void
-    endGame: (rewardRes: Record<string, number>) => void
+    endGame: (
+        gameRes: Record<string, { score: number; reward: number }>,
+    ) => void
 }
