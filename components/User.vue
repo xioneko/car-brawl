@@ -79,6 +79,7 @@ const openPopover = ref<boolean>(false)
 const popover = ref<HTMLElement | null>(null)
 const copied = ref<boolean>(false)
 const account = useAccount()
+const toast = useToast()
 const balanceAsync = useLazyFetch<GetBalance.Res>(`api/balance`, {
     params: {
         revAddr: (account.value as RevAccount).revAddr,
@@ -131,8 +132,26 @@ watch(openPopover, (isOpen) => {
 
 function copyAddrToClipboard() {
     if (account.type === AccountType.Registered) {
-        navigator.clipboard.writeText((account.value as RevAccount).revAddr)
-        copied.value = true
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText((account.value as RevAccount).revAddr)
+            copied.value = true
+        } else {
+            const textArea = document.createElement('textarea')
+            textArea.value = (account.value as RevAccount).revAddr
+            textArea.style.position = 'absolute'
+            textArea.style.left = '-999999px'
+
+            document.body.prepend(textArea)
+            textArea.select()
+            try {
+                document.execCommand('copy')
+            } catch {
+                toast.error('Copy failed')
+            } finally {
+                textArea.remove()
+                copied.value = true
+            }
+        }
         setTimeout(() => {
             copied.value = false
         }, 1000)
