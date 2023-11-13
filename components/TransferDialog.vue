@@ -74,7 +74,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineEmits } from 'vue'
 import type { AsyncDataRequestStatus } from 'nuxt/dist/app/composables/asyncData'
 import type { PostTransfer, RevAccount } from '~/models'
 
