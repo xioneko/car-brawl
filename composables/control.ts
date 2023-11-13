@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { consola } from 'consola'
 import type { CarCtrl } from '~/models/game'
 
 const logger = useLogger('Control')

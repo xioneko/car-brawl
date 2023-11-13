@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { dataAtName, propose, sendDeploy } from '../rchain/http'
-import { type PostLogin } from '~/models/http'
+import { type PostLogin } from '~/models'
 
 const logger = useLogger('Login Service')
 

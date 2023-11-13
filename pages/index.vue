@@ -91,7 +91,6 @@ async function connectMetamask() {
             method: 'eth_requestAccounts',
         })
         const revAddr = createRevAddrFromEth(ethAddr)
-        // account.$patch({ value: { ethAddr, revAddr } })
         account.value = { ethAddr, revAddr }
         try {
             loginStatus.value = 'pending'
@@ -180,7 +179,7 @@ async function connectMetamask() {
 
 @keyframes slideIn {
     to {
-        transform: translateX(0); /* 最终位置，回到原始位置 */
+        transform: translateX(0);
         opacity: 1;
         filter: blur(0);
         filter: drop-shadow(2px 1px 6px #000);

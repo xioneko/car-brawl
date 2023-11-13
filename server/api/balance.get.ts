@@ -1,6 +1,5 @@
-import { useLogger } from '@nuxt/kit'
 import { rnodeRead } from '../rchain/axios'
-import { GetBalance } from '~/models/http'
+import { GetBalance } from '~/models'
 
 const logger = useLogger('Balance Service')
 

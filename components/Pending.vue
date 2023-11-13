@@ -1,6 +1,6 @@
 <template>
     <div
-        class="font-just_for_fun flex h-full w-full flex-col items-center justify-center text-white"
+        class="flex h-full w-full flex-col items-center justify-center font-just_for_fun text-white"
     >
         <div class="waiting-animation text-left text-6xl after:absolute">
             Waiting players

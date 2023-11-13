@@ -42,8 +42,6 @@
                 {{ dayjs(gameState.timeLeft).format('mm:ss') }}
             </div>
         </div>
-
-        <!-- <PlaygroundDashboard class="absolute" :source="localCar" /> -->
     </div>
 </template>
 

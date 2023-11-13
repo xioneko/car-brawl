@@ -2,7 +2,7 @@
     <div
         class="car absolute"
         :class="{
-            death: state.status === CarStatus.DEATH,
+            hidden: state.status === CarStatus.DEATH,
         }"
         :style="{
             transform: styles.translate.value,
@@ -11,7 +11,7 @@
         <div
             class="car-body absolute -left-[4px] -top-[8px] h-[16px] w-[8px] rounded-sm"
             :class="{
-                invincible: state.status === CarStatus.INVINCIBLE,
+                'opacity-50': state.status === CarStatus.INVINCIBLE,
             }"
             :style="{
                 backgroundColor: state.style.body,
@@ -34,7 +34,6 @@
 
 <script lang="ts" setup>
 import _ from 'lodash'
-import { consola } from 'consola'
 import { Car, CarStatus, Constant } from '~/models/game'
 
 const logger = useLogger('Car')
@@ -77,13 +76,3 @@ onUnmounted(() => {
     clearInterval(track)
 })
 </script>
-
-<style lang="less" scoped>
-.invincible {
-    @apply opacity-50;
-}
-
-.death {
-    @apply hidden;
-}
-</style>

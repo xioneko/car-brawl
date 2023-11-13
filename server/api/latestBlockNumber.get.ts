@@ -1,5 +1,5 @@
 import { rnodeHttp } from '../rchain/axios'
-import { GetLatestBlockNumber } from '~/models/'
+import { GetLatestBlockNumber } from '~/models'
 
 export default defineEventHandler(
     async (event): Promise<GetLatestBlockNumber.Res> => {

@@ -144,7 +144,8 @@ export class CompetitiveRoom extends Room<
 
     onLeave(clientId: string) {
         logger.info(`${clientId} leave the room ${this.roomId}}`)
-        handlePlayerLeave(clientId, this.userData, this.state)
+        // TODO: 竞技模式下，退出房间后不会退出游戏
+        // handlePlayerLeave(clientId, this.userData, this.state)
     }
 
     onDispose() {

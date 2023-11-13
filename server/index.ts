@@ -60,5 +60,7 @@ server.startClearConnectionLoop()
         )
 
         logger.success('Propose success!')
-    } catch {}
+    } catch (error: any) {
+        logger.error(`Initialize contracts failed: ${error.message}`)
+    }
 })()

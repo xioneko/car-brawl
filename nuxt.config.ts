@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     modules: ['@nuxtjs/tailwindcss'],
 
     nitro: {
-        entry: '~/server/index.ts',
+        entry: '~/server/index.ts', // a hacky way to extend server capabilities
         serverAssets: [
             {
                 baseName: 'contracts',
