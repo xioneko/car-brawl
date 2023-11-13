@@ -1,7 +1,5 @@
 # Car Brawl
 
-🚧 **Working in progress**
-
 ## 📖 Learning
 
 <ul>
@@ -15,26 +13,12 @@
 <details>
   <summary>搭建本地 Rholang 执行环境</summary>
   <div>
-    <h4>方法一：</h4>
-      <ol>
-        <li>在 Windows 上安装 <a href="https://docs.docker.com/desktop/install/windows-install/">Docker</a> 并打开</li>
-        <li>打开 VS Code 安装 Rholang 扩展</li>
-        <li>在扩展设置中打开 Enable Docker，在 Rnode Docker Image 中输入 <code>rchain/rnode:v0.12.8</code></li>
-        <li>打开 .rho 文件，Ctrl+S 保存，便可以在输出面板 [Rholang] 中看到执行结果
-      </ol>
-  </div>
-  <div>
-    <h4>方法二：</h4>
-      <ol>
-        <li>在 Windows 上安装 <a href="https://docs.docker.com/desktop/install/windows-install/">Docker</a> 并打开</li>
-        <li>拉取 rnode 镜像 <code>docker pull rchain/rnode:v0.12.8</code></li>
-        <li>创建 docker network <code>docker network create rnode-net</code></li>
-        <li>运行 rnode 节点 <code>docker run -u root -it --rm --network rnode-net --name rnode -v "%cd%/":/data rchain/rnode:v0.12.8 run -s</code>，在当前终端中会显示 rnode 日志</li>
-        <li>新建一个终端，创建命令别名 <code>doskey rnode=docker exec rnode /opt/docker/bin/rnode $*</code></li>
-        <li>执行 .rho 文件 <code>rnode eval "file_path"</code> (路径格式：假如当前目录有个 hello.rho 文件，那么应该执行 <code>rnode eval /data/hello.rho</code>)</li>
-        <li>在显示 rnode 日志的终端中可以看到执行结果</li>
-      </ol>
-    注意：<code>docker run</code> 命令创建的容器是一次性的，在运行命令的终端中按下 <code>Ctrl+C</code> 可以停止并删除容器。需要再次运行 rnode 时，先打开 Docker Desktop 应用，然后从第 4 步骤开始即可
+    <ol>
+      <li>在 Windows 上安装 <a href="https://docs.docker.com/desktop/install/windows-install/">Docker</a> 并打开</li>
+      <li>打开 VS Code 安装 Rholang 扩展</li>
+      <li>在扩展设置中打开 Enable Docker，在 Rnode Docker Image 中输入 <code>rchain/rnode:v0.12.8</code></li>
+      <li>打开 .rho 文件，Ctrl+S 保存，便可以在输出面板 [Rholang] 中看到执行结果
+    </ol>
   </div>
 </details>
 
@@ -72,7 +56,7 @@
     |入场券|需要|—|—|
     |奖励|有|—|—|
 
--   一种游戏模式对应服务端一种 Room 实现，当 Room 中的玩家数量达到最大限制时，新的 Room 会被创建
+-   一种游戏模式对应服务端一种 Room 实现，其中竞技模式 Room 要求加入的玩家必须提供 accessToken，玩家可以通过购买“入场券”来获取该 token。
 
 ### Rchain
 
@@ -80,21 +64,24 @@
 -   参考 [tgrospic/rnode-http-js](https://github.com/tgrospic/rnode-http-js) 和 [tgrospic/rnode-client-js-dev-test](https://github.com/tgrospic/rnode-client-js-dev-test) 开发 rnode web client。客户端的 Deploy 请求会通过服务端代理部署到 rchain 上。
 -   客户端通过 [MetaMask](https://metamask.io/) 钱包的浏览器扩展对部署内容进行签名 ([personal_sign](https://docs.metamask.io/wallet/reference/personal_sign/))，再让后端服务器代理 Deploy。并通过 MetaMask 获取用户的 ETH 地址 ([eth_accounts](https://docs.metamask.io/wallet/reference/eth_accounts/))，将其转换成 REV 地址以用于交易或余额查询。
 
-### REV System
+### Contracts
 
--   初次启动时，固定数量的 REV 会被供应到 RChain 网络上。
+-   初次启动时，固定数量的 REV 会被供应到 RChain 网络上 (携带在启动的 Validator 节点上)。
 -   对于新注册的玩家，会通过 ["Faucet"](./contracts/faucet.rho) 合约给予一定数量的 REV。
 -   玩家若想参与竞技模式，需要通过 "BuyTicket" 合约购买“入场券”，游戏结束后将根据玩家积分排名给予 REV 奖励，具体规则见 ["CarBrawl"](./contracts/game.rho) 合约。
 -   玩家若没有足够的 REV 参与对战，则可以通过私下交易的形式与从其他玩家处获取（游戏平台提供了 REV 转账功能，见智能合约 ["Transfer"](./contracts/transfer.rho)）。
 
 ## 🚩 Roadmap
-- [x] 实现 Rchain HTTP client
-- [x] 实现基本的智能合约
-- [x] 实现基本的游戏服务器 & 客户端
+- [x] Rchain HTTP client 开发 [🔗](./server/rchain/)
+- [x] 智能合约编写 [🔗](./contracts/)
+- [x] 游戏服务器开发 [🔗](./server/socket/)
+- [x] 实现客户端的游戏画面渲染 [🔗](./components/Playground/)
 - [x] 连接 Metamask 钱包和完善账户功能
-- [x] 在竞技模式中加入 Rchain 交互，实现 REV 系统
-- [ ] 实现基本的界面 UI
-- [ ] ...
+- [x] 借助 rnode api 实现竞技模式规则
+- [x] 客户端界面完善、UI 美化
+- [ ] 边界情况测试
+- [ ] 实现更多玩法
+- ...
 
 ## 🛠️ Development
 
@@ -128,12 +115,12 @@ pnpm install
 ### Run & Build
 ```bash
 # 运行 Rnode
-docker compose up # 在 Windows 上需要打开 Docker desktop，Ubuntu 上开启 docker service
+docker compose up # 在 Windows 上需要打开 Docker desktop，在 Ubuntu 上需开启 docker service 并使用 sudo
 
 # 开发模式
 pnpm dev # 新建一个终端。访问 http://localhost:<port>，其中 <port> 在 .env 文件中定义
 
-# 终止（先按下 Ctrl+C）
+# 终止 Rnode（先按下 Ctrl+C）
 docker compose down
 
 # 构建
@@ -141,9 +128,11 @@ pnpm build # 输出目录为 .output
 ```
 
 > **Warning**
-> - Rchain 网络的建立需要一定时间，等 docker 运行日志中出现 "Approved state for block Block" 时再执行 pnpm dev
+> - Rchain 网络的建立需要一定时间，等 docker 运行日志中出现 "Approved state for block Block #0" 时再执行 pnpm dev
+> - 服务端刚运行时会部署一些初始的合约，等运行日志出现 propose success 的消息后再访问客户端网页
+> - 运行在开发模式下，修改服务端代码触发的热重载会导致合约被重新部署一遍
 
-## Contribute
+## 🤝 Contribute
 
 - Fork 代码仓库并 clone 到本地
 - 使用 Git 提交并推送你的修改
