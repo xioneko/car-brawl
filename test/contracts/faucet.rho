@@ -1,0 +1,15 @@
+new result, print(`rho:io:stdout`) in {
+    @"Faucet"!("TestDeployer", "fake", "UserA", *result) |
+    @"Faucet"!("TestDeployer", "fake", "UserB", *result) |
+    @"Faucet"!("TestDeployer", "fake", "UserC", *result) |
+    @"Faucet"!("TestDeployer", "fake", "UserA", *result) |
+    for (@(success, msg) <= result) {
+        print!(msg)
+        /* expect: (unordered)
+            Faucet success, newcomer: UserA
+            Faucet success, newcomer: UserB
+            Faucet success, newcomer: UserC
+            UserA has been registered
+        */
+    }
+}
