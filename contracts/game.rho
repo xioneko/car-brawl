@@ -21,7 +21,7 @@ contract @"CarBrawl"(@{
                   return!((true, player ++ " buys a ticket."))
                 } else {
                   ticketRegistryCh!(tickets) |
-                  debug!("Buy ticket transfer failed: " ++ msg)
+                  return!((false, "Buy ticket transfer failed: " ++ msg))
                 }
               }
             }
@@ -32,27 +32,36 @@ contract @"CarBrawl"(@{
     | // 创建游戏
     contract @"CreateGame"(@gameId) = {
       new gameResultCh, playersCh, rewardPool in {
-        debug!("Game " ++ gameId ++ " is created")
-        |
+        // debug!("Game " ++ gameId ++ " is created") |
         playersCh!(Set()) |  // Set("p1_addr", "p2_addr", ...)
         rewardPool!(0) |
         gameResultCh!()  // [["playerA", 123], ["playerB", 234], ...]
         | // 加入游戏
-        contract @[gameId, "joinGame"](@[player, ...rest], return) = {
-            if (rest.length() > 0) @[gameId, "joinGame"]!(rest, *return) |
-            for (@prev <- playersCh) {
-              match prev.contains(player) {
-                false => {
-                  for (@prev <- rewardPool) {
-                    rewardPool!(prev + cost)
-                  } |
-                  playersCh!(prev.add(player)) |
-                  debug!(player ++ " join the game " ++ gameId ++ ".") |
-                  return!(player ++ " join the game " ++ gameId ++ ".")
+        contract @[gameId, "joinGame"](@players, return) = {
+          for (@tickets <- ticketRegistryCh) {
+            ticketRegistryCh!(tickets) |
+            new iterate in {
+              iterate!(players) |
+              for (@[player, ...rest] <= iterate) {
+                if (rest.length() > 0) iterate!(rest) |
+                if (tickets.contains(player)) {
+                  for (@prev <- playersCh) {
+                    match prev.contains(player) {
+                      false => {
+                        for (@prev <- rewardPool) {
+                          rewardPool!(prev + cost)
+                        } |
+                        playersCh!(prev.add(player)) |
+                        // debug!(player ++ " join the game " ++ gameId ++ ".") |
+                        return!(player ++ " join the game " ++ gameId ++ ".")
+                        }
+                      true => playersCh!(prev)
+                    }
                   }
-                true => playersCh!(prev)
+                }
               }
             }
+          }
         }
         | // 结束游戏
         contract @[gameId, "endGame"](@pointsMap, return) = {
@@ -66,7 +75,7 @@ contract @"CarBrawl"(@{
                 ticketRegistryCh!(tickets.delete(player)) |
                 if (players.contains(player)) {
                   for (@prev <- resultsCh) {
-                    debug!("${player} win points ${points}" %% {"player": player, "points": points} ) |
+                    // debug!("${player} win points ${points}" %% {"player": player, "points": points} ) |
                     return!("${player} win points ${points}" %% {"player": player, "points": points} ) |
                     if (prev.length() == players.size() - 1) {
                       gameResultCh!(prev ++ [[player, points]])
@@ -82,8 +91,8 @@ contract @"CarBrawl"(@{
         | // 奖励分配
         contract @[gameId, "reward"](@deployer, return) = {
           for (@res <- gameResultCh; @R <- rewardPool) {
-            debug!(("gameResultCh", res)) |
-            debug!(("rewardPool", R)) |
+            // debug!(("gameResultCh", res)) |
+            // debug!(("rewardPool", R)) |
             new sortedResCh, compareFunc in {
               @"mergeSort"!(res, *compareFunc, *sortedResCh) |
               contract compareFunc(@a, @b, return) = {

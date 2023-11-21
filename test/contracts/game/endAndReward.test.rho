@@ -1,0 +1,27 @@
+new print(`rho:io:stdout`) in {
+  // note: depend on "mergesort" contract
+  @["fakeGameId", "endGame"]!({
+      "player1": 23,
+      "player2": 18,
+      "player3": 12,
+      "player4": 15,
+      "player999": 1234,
+    }, *print) |
+    @["fakeGameId", "reward"]!("fakeDeployer", *print)
+    /* expect: (unordered, num1 > num2 > num4 > num3)
+      player1 win points 23
+      player2 win points 18
+      player3 win points 12
+      player4 win points 15
+
+      fakeHost transfers num1 to player1.
+      fakeHost transfers num2 to player2.
+      fakeHost transfers num3 to player3.
+      fakeHost transfers num4 to player4.
+
+      ("player1", num1)
+      ("player2", num2)
+      ("player3", num3)
+      ("player4", num4)
+    */
+}

@@ -1,0 +1,11 @@
+new print(`rho:io:stdout`) in {
+  @"CarBrawl"!({
+    "host": "fakeHost",
+    "cost": 100000,
+  }) |
+  // Mock
+  contract @"Transfer"(deployer, @from, @to, @amount, return) = {
+    print!("${from} transfers ${amount} to ${to}." %% {"from": from, "amount": amount, "to": to}) |
+    return!((true, "Transfer successful."))
+  }
+}
