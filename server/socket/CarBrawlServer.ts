@@ -28,24 +28,21 @@ export class CarBrawlServer {
         [type in RoomType]: new (server: Server) => Room<any, any>
     }
 
-    private rooms: Set<Room<GameState>> = new Set()
+    private loops: NodeJS.Timeout[] = []
+
+    rooms: Set<Room<GameState>> = new Set()
 
     constructor(
-        port: number,
+        io: Server<ClientEvents, ServerEvents>,
         roomRegistry: {
             [type in RoomType]: new (server: Server) => Room<any, any>
         },
     ) {
         this.roomRegistry = roomRegistry
+        this.io = io
+    }
 
-        this.io = new Server(port, {
-            cors: {
-                origin: `http://${
-                    process.dev ? 'localhost' : process.env.SERVER_IP
-                }:${process.env.PORT}`,
-            },
-        })
-
+    setup() {
         this.io.on('connection', (socket) => {
             logger.info(`Client ${socket.id} Connected`)
 
@@ -65,7 +62,7 @@ export class CarBrawlServer {
 
                     socket.emit('joinStatus', true)
                 } else {
-                    room = this.findRoom(type)
+                    room = this.findOrCreateRoom(type)
 
                     const [success, error] = room!.onAuth(player, options)
                     if (success) {
@@ -124,23 +121,8 @@ export class CarBrawlServer {
                 }
             })
         })
-    }
 
-    findRoom(type: RoomType) {
-        const existRoom = _.find(Array.from(this.rooms), (room) => {
-            return (
-                room._available &&
-                room.type === type &&
-                this.numOfPlayersIn(room.roomId) < room.maxPlayers
-            )
-        })
-        if (existRoom) {
-            // logger.debug(`Find existing room ${existRoom.roomId}`)
-            return existRoom
-        } else {
-            const RoomCtor = this.roomRegistry[type]!
-            return new RoomCtor(this.io)
-        }
+        return this
     }
 
     async hostGame() {
@@ -167,7 +149,7 @@ export class CarBrawlServer {
     }
 
     startStateSyncLoop() {
-        setInterval(() => {
+        const loop = setInterval(() => {
             if (_.isEmpty(this.clients)) return
 
             for (const room of this.rooms.values()) {
@@ -181,10 +163,14 @@ export class CarBrawlServer {
                 this.io.to(room.roomId).volatile.emit('stateSync', room.state)
             }
         }, 1000 / Constant.TickRate)
+
+        this.loops.push(loop)
+
+        return this
     }
 
     startClearConnectionLoop() {
-        setInterval(() => {
+        const loop = setInterval(() => {
             for (const [player, { disconnectedSince }] of this.clients) {
                 if (
                     disconnectedSince &&
@@ -197,6 +183,32 @@ export class CarBrawlServer {
                 }
             }
         }, ms('10 min'))
+
+        this.loops.push(loop)
+
+        return this
+    }
+
+    close() {
+        this.loops.forEach(clearInterval)
+        this.io.close()
+    }
+
+    private findOrCreateRoom(type: RoomType) {
+        const existRoom = _.find(Array.from(this.rooms), (room) => {
+            return (
+                room._available &&
+                room.type === type &&
+                this.numOfPlayersIn(room.roomId) < room.maxPlayers
+            )
+        })
+        if (existRoom) {
+            // logger.debug(`Find existing room ${existRoom.roomId}`)
+            return existRoom
+        } else {
+            const RoomCtor = this.roomRegistry[type]!
+            return new RoomCtor(this.io)
+        }
     }
 
     private numOfPlayersIn(roomId: string) {
