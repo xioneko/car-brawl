@@ -47,8 +47,6 @@ export class CarBrawlServer {
             logger.info(`Client ${socket.id} Connected`)
 
             socket.on('joinRoom', (player, type, options) => {
-                // logger.debug(`Receive "joinRoom" event from ${player}`)
-
                 const client = this.clients.get(player)
 
                 let room = client?.room
@@ -101,9 +99,10 @@ export class CarBrawlServer {
             })
 
             socket.onAny((eventName, player, ...args) => {
+                logger.trace(`Receive ${eventName} event from ${player}`)
                 if (['joinRoom', 'leaveRoom', 'carCtrl'].includes(eventName))
                     return
-                logger.debug(`Receive "${eventName}" event from ${player}`)
+                logger.trace(`Receive "${eventName}" event from ${player}`)
                 const room = this.clients.get(player)!.room!
                 room._handle(eventName, player, args)
             })
@@ -191,7 +190,10 @@ export class CarBrawlServer {
 
     close() {
         this.loops.forEach(clearInterval)
-        this.io.close()
+        this.rooms.forEach(({ roomId }) => {
+            this.io.in(roomId).disconnectSockets()
+        })
+        this.io.removeAllListeners()
     }
 
     private findOrCreateRoom(type: RoomType) {
@@ -203,7 +205,7 @@ export class CarBrawlServer {
             )
         })
         if (existRoom) {
-            // logger.debug(`Find existing room ${existRoom.roomId}`)
+            logger.trace(`Find existing room ${existRoom.roomId}`)
             return existRoom
         } else {
             const RoomCtor = this.roomRegistry[type]!
@@ -233,7 +235,7 @@ export class CarBrawlServer {
 
     private disposeRoom(room: Room<GameState>) {
         this.rooms.delete(room)
-        room.onDispose()
+        room.onDispose?.()
         this.clients.forEach((client) => {
             if (client.room?.roomId === room.roomId) {
                 client.room = null
