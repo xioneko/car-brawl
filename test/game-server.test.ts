@@ -151,4 +151,69 @@ describe('CarBrawlServer', () => {
             })
         })
     })
+
+    it('should synchronize the modified state to all clients', () => {
+        return new Promise<void>((done) => {
+            const gameServer = new CarBrawlServer(io, {
+                [RoomType.FunRoom]: new RoomClassBuilder()
+                    .withType(RoomType.FunRoom)
+                    .build(),
+                [RoomType.SingleRoom]: new RoomClassBuilder()
+                    .withType(RoomType.SingleRoom)
+                    .build(),
+                [RoomType.CompetitiveRoom]: new RoomClassBuilder()
+                    .withType(RoomType.CompetitiveRoom)
+                    .build(),
+            })
+                .setup()
+                .startStateSyncLoop()
+
+            const clients = _.times(3, () => {
+                return ioc(`http://localhost:${port}`) as ClientSocket<
+                    ServerEvents,
+                    ClientEvents
+                >
+            })
+
+            clients.forEach((client, index) => {
+                client.on('connect', () => {
+                    client.emit(
+                        'joinRoom',
+                        'player_' + index,
+                        RoomType.FunRoom,
+                        {} as RoomOptions,
+                    )
+                })
+            })
+
+            new Promise((resolve) => {
+                let joinCnt = 0
+                clients.forEach((client) => {
+                    client.on('joinStatus', (success) => {
+                        if (success) joinCnt++
+                        else resolve(false)
+                        if (joinCnt === 3) resolve(true)
+                    })
+                })
+            }).then((success) => {
+                expect(success).toBeTruthy()
+
+                const stateSyncHandler = vi.fn()
+                clients.forEach((client) => {
+                    client.on('stateSync', stateSyncHandler)
+                })
+
+                gameServer.rooms.forEach((room) => {
+                    room.requestSync()
+                })
+
+                setTimeout(() => {
+                    expect(stateSyncHandler).toBeCalledTimes(3)
+                    gameServer.close()
+                    clients.forEach((client) => client.close())
+                    done()
+                }, 200)
+            })
+        })
+    })
 })
