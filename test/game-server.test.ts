@@ -263,5 +263,66 @@ describe('CarBrawlServer', () => {
                 })
             })
         })
+
+        it('should stay in the original room when a client rejoins after a temporary disconnection', () => {
+            const rejoinHandler = vi.fn()
+            return new Promise<void>((done) => {
+                const gameServer = new CarBrawlServer(io, {
+                    [RoomType.FunRoom]: new RoomClassBuilder()
+                        .withType(RoomType.FunRoom)
+                        .onJoin((player, _, rejoin) => {
+                            if (rejoin) rejoinHandler()
+                        })
+                        .build(),
+                    [RoomType.SingleRoom]: new RoomClassBuilder()
+                        .withType(RoomType.SingleRoom)
+                        .build(),
+                    [RoomType.CompetitiveRoom]: new RoomClassBuilder()
+                        .withType(RoomType.CompetitiveRoom)
+                        .build(),
+                })
+                    .setup()
+                    .startClearConnectionLoop('20ms', '1s')
+
+                const client = ioc(`http://localhost:${port}`) as ClientSocket<
+                    ServerEvents,
+                    ClientEvents
+                >
+
+                client.on('connect', () => {
+                    client.emit(
+                        'joinRoom',
+                        'player',
+                        RoomType.FunRoom,
+                        {} as RoomOptions,
+                    )
+                })
+
+                client.on('joinStatus', (success) => {
+                    expect(success).toBeTruthy()
+
+                    client.disconnect()
+                    setTimeout(() => {
+                        client.connect()
+                        client.on('connect', () => {
+                            client.emit(
+                                'joinRoom',
+                                'player',
+                                RoomType.FunRoom,
+                                {} as RoomOptions,
+                            )
+                        })
+                        client.on('joinStatus', (success) => {
+                            expect(success).toBeTruthy()
+                            expect(rejoinHandler).toHaveBeenCalled()
+
+                            gameServer.close()
+                            client.close()
+                            done()
+                        })
+                    }, 10)
+                })
+            })
+        })
     })
 })
