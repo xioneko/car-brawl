@@ -102,7 +102,6 @@ export class CarBrawlServer {
                 logger.trace(`Receive ${eventName} event from ${player}`)
                 if (['joinRoom', 'leaveRoom', 'carCtrl'].includes(eventName))
                     return
-                logger.trace(`Receive "${eventName}" event from ${player}`)
                 const room = this.clients.get(player)!.room!
                 room._handle(eventName, player, args)
             })

@@ -10,7 +10,7 @@ export class RoomClassBuilder {
     private maxPlayers: number | undefined
 
     private hooks = {
-        onCreate: () => {},
+        onCreate: (room: Room<GameState>) => {},
         onDispose: () => {},
         onAuth: (player: string, options: RoomOptions) =>
             [true] as [boolean, string?],
@@ -26,7 +26,7 @@ export class RoomClassBuilder {
         return class room extends Room<GameState> {
             constructor(server: Server) {
                 super(server, builder.type, builder.state, builder.maxPlayers)
-                builder.hooks.onCreate()
+                builder.hooks.onCreate(this)
             }
 
             onAuth = builder.hooks.onAuth
@@ -53,7 +53,7 @@ export class RoomClassBuilder {
         return this
     }
 
-    onCreate(cb: () => void) {
+    onCreate(cb: (room: Room<GameState, any, any>) => void) {
         this.hooks.onCreate = cb
         return this
     }
