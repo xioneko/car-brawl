@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Server } from 'socket.io'
-import ms from 'ms'
+import ms, { type StringValue } from 'ms'
 import { SystemRevAddr, sendDeploy } from '../rchain/http'
 import { Room } from './Room'
 import {
@@ -167,12 +167,15 @@ export class CarBrawlServer {
         return this
     }
 
-    startClearConnectionLoop() {
+    startClearConnectionLoop(
+        interval: StringValue = '10 min',
+        connectionTimeout: StringValue = '15 min',
+    ) {
         const loop = setInterval(() => {
             for (const [player, { disconnectedSince }] of this.clients) {
                 if (
                     disconnectedSince &&
-                    Date.now() - disconnectedSince > ms('15 min')
+                    Date.now() - disconnectedSince > ms(connectionTimeout)
                 ) {
                     this.removeClient(player)
                     logger.info(
@@ -180,7 +183,7 @@ export class CarBrawlServer {
                     )
                 }
             }
-        }, ms('10 min'))
+        }, ms(interval))
 
         this.loops.push(loop)
 

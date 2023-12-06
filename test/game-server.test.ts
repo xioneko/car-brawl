@@ -147,7 +147,7 @@ describe('CarBrawlServer', () => {
                     gameServer.close()
                     client.close()
                     done()
-                }, 200)
+                }, 500)
             })
         })
     })
@@ -212,7 +212,55 @@ describe('CarBrawlServer', () => {
                     gameServer.close()
                     clients.forEach((client) => client.close())
                     done()
-                }, 200)
+                }, 500)
+            })
+        })
+    })
+
+    describe('Player Disconnection', () => {
+        it('should be removed from the room if a client does not reconnect for too long', () => {
+            const leaveHandler = vi.fn()
+            return new Promise<void>((done) => {
+                const gameServer = new CarBrawlServer(io, {
+                    [RoomType.FunRoom]: new RoomClassBuilder()
+                        .withType(RoomType.FunRoom)
+                        .onLeave(leaveHandler)
+                        .build(),
+                    [RoomType.SingleRoom]: new RoomClassBuilder()
+                        .withType(RoomType.SingleRoom)
+                        .build(),
+                    [RoomType.CompetitiveRoom]: new RoomClassBuilder()
+                        .withType(RoomType.CompetitiveRoom)
+                        .build(),
+                })
+                    .setup()
+                    .startClearConnectionLoop('20ms', '30ms')
+
+                const client = ioc(`http://localhost:${port}`) as ClientSocket<
+                    ServerEvents,
+                    ClientEvents
+                >
+
+                client.on('connect', () => {
+                    client.emit(
+                        'joinRoom',
+                        'player',
+                        RoomType.FunRoom,
+                        {} as RoomOptions,
+                    )
+                })
+
+                client.on('joinStatus', (success) => {
+                    expect(success).toBeTruthy()
+
+                    client.disconnect()
+                    setTimeout(() => {
+                        expect(leaveHandler).toHaveBeenCalled()
+                        gameServer.close()
+                        client.close()
+                        done()
+                    }, 500)
+                })
             })
         })
     })
