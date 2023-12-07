@@ -236,6 +236,90 @@ describe('CarBrawlServer', () => {
                 )
             })
             expect(a).toBe(3)
+            gameServer.close()
+            clients.forEach((client) => client.close())
+        })
+
+        it('should not enter the room when authentication failed', async () => {
+            let a = false
+            const gameServer = new CarBrawlServer(io, {
+                [RoomType.FunRoom]: new RoomClassBuilder()
+                    .withType(RoomType.FunRoom)
+                    .onAuth(() => {
+                        // 模拟验证失败的情况
+                        return [false]
+                    })
+                    .build(),
+                [RoomType.SingleRoom]: new RoomClassBuilder()
+                    .withType(RoomType.SingleRoom)
+                    .onAuth(() => {
+                        // 模拟验证失败的情况
+                        return [false]
+                    })
+                    .build(),
+                [RoomType.CompetitiveRoom]: new RoomClassBuilder()
+                    .withType(RoomType.CompetitiveRoom)
+                    .onAuth(() => {
+                        // 模拟验证失败的情况
+                        return [false]
+                    })
+                    .build(),
+            }).setup()
+
+            const clients = _.times(3, () => {
+                return ioc(`http://localhost:${port}`) as ClientSocket<
+                    ServerEvents,
+                    ClientEvents
+                >
+            })
+
+            // 让第一个玩家尝试加入，创建一个房间
+            await new Promise<void>((resolve) => {
+                clients[0].on('joinStatus', (success) => {
+                    a = success
+                    resolve()
+                })
+
+                clients[0].emit(
+                    'joinRoom',
+                    'player_1',
+                    RoomType.FunRoom,
+                    {} as RoomOptions,
+                )
+            })
+
+            await new Promise<void>((resolve) => {
+                clients[1].on('joinStatus', (success) => {
+                    a = success
+                    resolve()
+                })
+
+                clients[1].emit(
+                    'joinRoom',
+                    'player_2',
+                    RoomType.SingleRoom,
+                    {} as RoomOptions,
+                )
+            })
+
+            await new Promise<void>((resolve) => {
+                clients[2].on('joinStatus', (success) => {
+                    a = success
+                    resolve()
+                })
+
+                clients[2].emit(
+                    'joinRoom',
+                    'player_3',
+                    RoomType.CompetitiveRoom,
+                    {} as RoomOptions,
+                )
+            })
+
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(a).toBe(false)
+            gameServer.close()
+            clients.forEach((client) => client.close())
         })
     })
 
