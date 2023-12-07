@@ -153,6 +153,90 @@ describe('CarBrawlServer', () => {
             gameServer.close()
             clients.forEach((client) => client.close())
         })
+
+        it('should enter the room which was chosen', async () => {
+            let a = 0
+            const gameServer = new CarBrawlServer(io, {
+                [RoomType.FunRoom]: new RoomClassBuilder()
+                    .withType(RoomType.FunRoom)
+                    .onJoin((player) => {
+                        // 在这里判断加入的玩家是谁
+                        if (player === 'player_1') {
+                            // 玩家成功加入了 FunRoom
+                            a = a + 1
+                        }
+                    })
+                    .build(),
+                [RoomType.SingleRoom]: new RoomClassBuilder()
+                    .withType(RoomType.SingleRoom)
+                    .onJoin((player) => {
+                        // 在这里判断加入的玩家是谁
+                        if (player === 'player_2') {
+                            // 玩家成功加入了 SingleRoom
+                            a = a + 1
+                        }
+                    })
+                    .build(),
+                [RoomType.CompetitiveRoom]: new RoomClassBuilder()
+                    .withType(RoomType.CompetitiveRoom)
+                    .onJoin((player) => {
+                        // 在这里判断加入的玩家是谁
+                        if (player === 'player_3') {
+                            // 玩家成功加入了 CompetitiveRoom
+                            a = a + 1
+                        }
+                    })
+                    .build(),
+            }).setup()
+
+            const clients = _.times(3, () => {
+                return ioc(`http://localhost:${port}`) as ClientSocket<
+                    ServerEvents,
+                    ClientEvents
+                >
+            })
+
+            // 让第一个玩家尝试加入，创建一个房间
+            await new Promise<void>((resolve) => {
+                clients[0].on('joinStatus', (success) => {
+                    resolve()
+                })
+
+                clients[0].emit(
+                    'joinRoom',
+                    'player_1',
+                    RoomType.FunRoom,
+                    {} as RoomOptions,
+                )
+            })
+
+            await new Promise<void>((resolve) => {
+                clients[1].on('joinStatus', (success) => {
+                    resolve()
+                })
+
+                clients[1].emit(
+                    'joinRoom',
+                    'player_2',
+                    RoomType.SingleRoom,
+                    {} as RoomOptions,
+                )
+            })
+
+            await new Promise<void>((resolve) => {
+                clients[2].on('joinStatus', (success) => {
+                    resolve()
+                })
+
+                clients[2].emit(
+                    'joinRoom',
+                    'player_3',
+                    RoomType.CompetitiveRoom,
+                    {} as RoomOptions,
+                )
+            })
+            expect(a).toBe(3)
+        })
     })
 
     it('should be delegated to the room when the server receives events from clients', () => {
