@@ -88,6 +88,71 @@ describe('CarBrawlServer', () => {
                 })
             })
         })
+
+        it('should not be able to enter when room is not available', async () => {
+            const gameServer = new CarBrawlServer(io, {
+                [RoomType.FunRoom]: new RoomClassBuilder()
+                    .withType(RoomType.FunRoom)
+                    .withMaxPlayers(2)
+                    .build(),
+                [RoomType.SingleRoom]: new RoomClassBuilder()
+                    .withType(RoomType.SingleRoom)
+                    .build(),
+                [RoomType.CompetitiveRoom]: new RoomClassBuilder()
+                    .withType(RoomType.CompetitiveRoom)
+                    .build(),
+            }).setup()
+
+            const clients = _.times(3, () => {
+                return ioc(`http://localhost:${port}`) as ClientSocket<
+                    ServerEvents,
+                    ClientEvents
+                >
+            })
+
+            // 让第一个玩家尝试加入，创建一个房间
+            await new Promise<void>((resolve) => {
+                clients[0].on('joinStatus', (success) => {
+                    resolve()
+                })
+
+                clients[0].emit(
+                    'joinRoom',
+                    'player_0',
+                    RoomType.FunRoom,
+                    {} as RoomOptions,
+                )
+            })
+
+            // 让所有房间不可用
+            gameServer.rooms.forEach((room) => room.dispose())
+
+            // 让其他两个玩家尝试加入
+            const joinResults = await Promise.all(
+                clients.slice(1).map((client, index) => {
+                    return new Promise<boolean>((resolve) => {
+                        client.on('joinStatus', (success) => {
+                            // Check if the player successfully joined
+                            resolve(success)
+                        })
+
+                        client.emit(
+                            'joinRoom',
+                            'player_' + (index + 1),
+                            RoomType.FunRoom,
+                            {} as RoomOptions,
+                        )
+                    })
+                }),
+            )
+
+            // Expect that new room have been created
+            const Roomnum = Array.from(gameServer.rooms).length
+            expect(Roomnum).toBe(2)
+            // Close the GameServer and clients
+            gameServer.close()
+            clients.forEach((client) => client.close())
+        })
     })
 
     it('should be delegated to the room when the server receives events from clients', () => {
