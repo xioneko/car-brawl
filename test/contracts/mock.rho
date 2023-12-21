@@ -1,3 +1,0 @@
-contract @"Transfer"(deployer, @from, @to, @amount, return) = {
-  return!((true, "Transfer successful."))
-}
