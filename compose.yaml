@@ -1,7 +1,6 @@
 x-rnode: &default-rnode
     image: rchain/rnode:v0.12.8
     user: root
-    restart: always
     networks:
         - rchain-net
 

@@ -84,15 +84,15 @@ export abstract class Room<
         return [true]
     }
 
+    onDispose?(): void
+
+    onBeforeSync?(): void
+
     abstract onJoin(player: string, options: RoomOptions, rejoin: boolean): void
 
     abstract onLeave(player: string): void
 
     abstract onCarCtrl(player: string, ctrl: CarCtrl): void
 
-    abstract onDispose(): void
-
     abstract nextTick(): void
-
-    abstract onBeforeSync?(): void
 }

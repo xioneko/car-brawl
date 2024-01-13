@@ -8,6 +8,7 @@
         "bradlc.vscode-tailwindcss",
         "mikestead.dotenv",
         "nuxtr.nuxtr-vscode",
-        "tgrospic.rholang"
+        "tgrospic.rholang",
+        "zixuanchen.vitest-explorer"
     ]
 }

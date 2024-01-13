@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { Server } from 'socket.io'
 import { CarBrawlServer } from './socket/CarBrawlServer'
 import { CompetitiveRoom, FunRoom, SingleRoom } from './socket/rooms'
 import { propose, sendDeploy } from './rchain/http'
@@ -15,15 +16,22 @@ if (process.dev) {
 }
 
 const port = parseInt(process.env.SOCKET_PORT!)
-
-const server = new CarBrawlServer(port, {
+const io = new Server(port, {
+    cors: {
+        origin: `http://${process.dev ? 'localhost' : process.env.SERVER_IP}:${
+            process.env.PORT
+        }`,
+    },
+})
+const server = new CarBrawlServer(io, {
     [RoomType.FunRoom]: FunRoom,
     [RoomType.CompetitiveRoom]: CompetitiveRoom,
     [RoomType.SingleRoom]: SingleRoom,
 })
-server.hostGame()
-server.startStateSyncLoop()
-server.startClearConnectionLoop()
+    .setup()
+    .startStateSyncLoop()
+    .startClearConnectionLoop()
+
 ;(async function initRchainContracts() {
     const storage = useStorage()
     const rhoAssets = await storage.getKeys('assets/contracts')
@@ -64,3 +72,5 @@ server.startClearConnectionLoop()
         logger.error(`Initialize contracts failed: ${error.message}`)
     }
 })()
+
+server.hostGame()
