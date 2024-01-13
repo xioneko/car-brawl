@@ -1,4 +1,0 @@
-new log(`rho:io:stdout`) in {
-  @"CreateGame"!("mock_id") |
-  @["mock_id", "joinGame"]!(["player1", "player2", "player3", "player4"], *log)
-}

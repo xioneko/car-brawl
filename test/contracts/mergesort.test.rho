@@ -1,0 +1,40 @@
+new assertEqual, print(`rho:io:stdout`), compareFunc in {
+    new resultCh in {
+        @"mergeSort"!([["a", 6], ["b", 5], ["c", 4], ["c", 3], ["d", 2], ["e", 1]], *compareFunc, *resultCh) |
+        for (@sortedList <- resultCh) {
+            assertEqual!(sortedList, [["e", 1], ["d", 2], ["c", 3], ["c", 4], ["b", 5], ["a", 6]], "Long list")
+        }
+    }
+    |
+    new resultCh in {
+        @"mergeSort"!([], *compareFunc, *resultCh) |
+        for (@sortedList <- resultCh) {
+            assertEqual!(sortedList, [], "Empty list")
+        }
+    }
+    |
+    new resultCh in {
+        @"mergeSort"!([["a", 1]], *compareFunc, *resultCh) |
+        for (@sortedList <- resultCh) {
+            assertEqual!(sortedList, [["a", 1]], "One item")
+        }
+    }
+    |
+    new resultCh in {
+        @"mergeSort"!([["a", 2], ["b", 1]], *compareFunc, *resultCh) |
+        for (@sortedList <- resultCh) {
+            assertEqual!(sortedList, [["b", 1], ["a", 2]], "Two items")
+        }
+    }
+    |
+    contract assertEqual(@o1, @o2, @msg) = {
+        match o1 == o2 {
+            true => { print!("SUCCESS: " ++ msg) }
+            false => { print!("FAIL: " ++ msg) }
+        }
+    }
+    |
+    contract compareFunc(@a, @b, return) = {
+      return!(a.nth(1) < b.nth(1))
+    }
+}

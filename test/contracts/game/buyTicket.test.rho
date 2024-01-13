@@ -1,0 +1,19 @@
+new print(`rho:io:stdout`) in {
+    @"BuyTicket"!("fakeDeployer1", "player1", *print) |
+    @"BuyTicket"!("fakeDeployer2", "player2", *print) |
+    @"BuyTicket"!("fakeDeployer3", "player3", *print) |
+    @"BuyTicket"!("fakeDeployer4", "player4", *print) |
+    @"BuyTicket"!("fakeDeployer1", "player1", *print)
+    /* expect: (unordered)
+      (true, "player1 buys a ticket.")
+      (true, "player2 buys a ticket.")
+      (true, "player3 buys a ticket.")
+      (true, "player4 buys a ticket.")
+      (true, "player1 has already bought a ticket.")
+
+      player1 transfers 100000 to fakeHost.
+      player2 transfers 100000 to fakeHost.
+      player3 transfers 100000 to fakeHost.
+      player4 transfers 100000 to fakeHost.
+    */
+}

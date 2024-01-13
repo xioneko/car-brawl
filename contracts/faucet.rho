@@ -2,7 +2,7 @@ new registerCh, log(`rho:io:stdout`) in {
     registerCh!(Set()) |
     contract @"Faucet"(@deployer, @systemAddr, @newcomer, return) = {
       for (@s <- registerCh) {
-        log!(("[Faucet]", "registerCh: ", s)) |
+        // log!(("[Faucet]", "registerCh: ", s)) |
         if (not s.contains(newcomer)) {
           new result in {
             @"Transfer"!(deployer, systemAddr, newcomer, 1888888, *result) |

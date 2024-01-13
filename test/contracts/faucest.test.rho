@@ -1,0 +1,25 @@
+new resultCh, print(`rho:io:stdout`) in {
+    @"Faucet"!("fakeDeploer", "fakeSysAddr", "UserA", *resultCh) |
+    @"Faucet"!("fakeDeploer", "fakeSysAddr", "UserB", *resultCh) |
+    @"Faucet"!("fakeDeploer", "fakeSysAddr", "UserC", *resultCh) |
+    @"Faucet"!("fakeDeploer", "fakeSysAddr", "UserA", *resultCh) |
+    for (@result <= resultCh) {
+      print!(result)
+      /* expect: (unordered)
+          (true, Faucet success, newcomer UserA)
+          (true, Faucet success, newcomer UserB)
+          (true, Faucet success, newcomer UserC)
+          (false, Newcomer UserA already registered)
+      */
+    } |
+    // Mock
+    contract @"Transfer"(deployer, @from, @to, @amount, return) = {
+      print!("${from} transfers ${amount} to ${to}." %% {"from": from, "amount": amount, "to": to}) |
+      /* expect: (unordered)
+          fakeSysAddr transfers 1888888 to UserA.
+          fakeSysAddr transfers 1888888 to UserB.
+          fakeSysAddr transfers 1888888 to UserC.
+      */
+      return!((true, "Transfer successful."))
+    }
+}

@@ -1,0 +1,10 @@
+new print(`rho:io:stdout`) in {
+  @"CreateGame"!("fakeGameId") |
+  @["fakeGameId", "joinGame"]!(["player1", "player2", "player3", "player4", "player888"], *print)
+  /* expect: (unordered)
+    player1 join the game fakeGameId.
+    player2 join the game fakeGameId.
+    player3 join the game fakeGameId.
+    player4 join the game fakeGameId.
+  */
+}
